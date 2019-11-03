@@ -16,7 +16,10 @@ double data[1000] = { 0 };
 int var_type[100] = { 0 };
 //Type value - 1 : INT, 2 : FLOAT, 3 : DOUBLE, 4 : STRING, 5 : CHAR, 6 : UNIT, 7 : ANY
 int fun_type[100] = { 0 };
-int idx = 0, err = 0;
+int idx = 0, err = 0, tmp_data, tmp_idx;
+
+int Check_Type_Saved(char * name);
+int Check_Type_Not_Saved(double value);
 
 %}
 %union { double d_var; float f_var; int i_var; char* s_var; char c_var}
@@ -111,26 +114,26 @@ goal:	PACK FILE_PACK	goal { $$ = $3;
     |	eval EOF	{ $$ = $1;
 	}
 	;
-eval:	expr eval	{ printf("%lf\n", $1); 
+eval:	expr eval	{ $$ = $1; 
     	}
     |	expr		{ $$ = $1;
 	}
     ;
-expr:	for_stt		{
+expr:	for_stt		{ $$ = $1;
 	}	
-    |	while_stt	{
+    |	while_stt	{ $$ = $1;
 	}
-    |	if_stt		{	
+    |	if_stt		{ $$ = $1;
 	}
-    |	when_stt	{
+    |	when_stt	{ $$ = $1;
 	}
-    |	VAR var_decl	{
+    |	VAR var_decl	{ $$ = $1;
 	}
-    |	VAL val_decl	{	
+    |	VAL val_decl	{ $$ = $1;	
 	}
-    |	cal_sent	{
+    |	cal_sent	{ $$ = $1;
 	}
-    |	fun_stt		{
+    |	fun_stt		{ $$ = $1;
 	}
     ;
 cal_sent: calc_sent PLUS term	{ $$ = $1 + $3;
@@ -156,15 +159,15 @@ signed_factor:	PLUS factor { $$ = $2;
     ;
 factor: NUMBER	{ $$ = $1;
         }
-    |	ID 	{ idx = Find_index($1, var_name);
+    |	ID 	{ idx = Find_var_index($1, var_name);
 		  $$ = data[idx];
 	}
     |	OPEN cal_sent CLOSE { $$ = $2;
 	}
-    |	NUL	{
+    |	NUL	{ $$ = NULL;
 	}	
     ;
-param:	ID COLUMN type param COMMA {
+param:	ID COLUMN type param COMMA { 
      	}
     |	ID COLUMN type		{
 	}
@@ -175,19 +178,19 @@ type:	INT	{ $$ = 1;
 	}
     |	DOUBLE	{ $$ = 3;
 	}
-    |	STRING	{ $$
+    |	STRING	{ $$ = 4;
 	}
-    |	CHAR	{
+    |	CHAR	{ $$ = 5;
 	}
-    |	UNIT	{
+    |	UNIT	{ $$ = 6;
 	}
-    |	ANY	{
+    |	ANY	{ $$ = 7;
 	}
     ;
 fun_stt:  FUNC ID OPEN param CLOSE ret_type fun_body {
       	}
     ;
-ret_type: COLUMN type {
+ret_type: COLUMN type { 
 	}
     |	  COLUMN type QUESTION {
 	}
@@ -220,9 +223,9 @@ when_stt:  WHEN OPEN ID CLOSE M_OPEN when_body M_CLOSE	{
     ;
 cf_body: eval	{}
     ;
-com 	: COMMENT STR	{
+com 	: COMMENT STR	{ printf("////%s\n", $2);
 	}
-    |	COMMENT_OPEN STR COMMENT_CLOSE	{
+    |	COMMENT_OPEN STR COMMENT_CLOSE	{ printf("//*%s\n*//", $2);
 	}
     ;
 condition  :	is_condition	{ $$ = $1;
@@ -286,9 +289,23 @@ condition  :	is_condition	{ $$ = $1;
 	|	cal_sent	{ $$ = $1;
 		}
 	;
-is_condition :	ID IS type	{
+is_condition :	ID IS type	
+	     	{ 
+			tmp_idx = Find_var_index($1);
+			tmp_data = Check_Type_Saved($1);
+			if(var_type[tmp_idx] == tmp_data)
+				$$ = 1;
+			else
+				$$ = 0;
 	     	}
-	|	ID NOT IS type	{
+	|	ID NOT IS type	
+		{
+			tmp_idx = Find_var_index($1);
+			tmp_data = Check_Type_Saved($1);
+			if(var_type[tmp_idx] != tmp_data)
+				$$ = 1;
+			else
+				$$ = 0;
 		}
 	;
 for_condition :	condition	{ $$ = $1;
@@ -301,7 +318,7 @@ range	:	DOUTBLEDOT factor step_count {
 	|	DOWNTO factor step_count {
 		}
 	;
-step_count:	STEP NUMBER	{
+step_count:	STEP NUMBER	{ $$ = $3;
 	  	}
 	;
 withelse:	ELSEIF expr withelse	{
@@ -309,7 +326,9 @@ withelse:	ELSEIF expr withelse	{
 	|	ESLE expr		{
 		}
 	;
-val_decl:	ID EQUAL decl_content COMMA val_decl {
+val_decl:	ID EQUAL decl_content COMMA val_decl 
+		{
+			
 		}
  	|	ID	{
 		}

@@ -19,7 +19,7 @@ int range(char test)
 		return 0;
 }
 
-int Find_index(char* find, char * var_name[])
+int Find_var_index(char* find, char * var_name[])
 {
 	int i, ret;
 	char * tmp = (char*)malloc(sizeof(char) * 100);
@@ -43,9 +43,33 @@ int Find_index(char* find, char * var_name[])
 	return -1;
 }
 
+int Find_Fun_index(char* find, char * fun_name[])
+{
+	int i, ret;
+	char * tmp = (char*)malloc(sizeof(char) * 100);
+	for(i = 0; range(find[i]) ; i++)
+	{
+		tmp[i] = find[i];
+	}
+	tmp[i] = '\0';
+
+	for(i = 0; fun_name[i] != 0; i++)
+	{
+		if(strcmp(tmp, fun_name[i]) == 0)
+		{
+			free(tmp);
+			return i;
+		}
+	}
+
+	free(tmp);
+
+	return -1;
+}
+
 int Var_Save(char* var, double num, int tp, char* var_name[], double data[], int type[])
 {
-	int idx = Find_index(var, var_name);
+	int idx = Find_var_index(var, var_name);
 	char * tmp = (char*)malloc(sizeof(char) * 100);
 	if(idx != -1 && tp != type[idx])
 		return -1;
@@ -81,7 +105,7 @@ int Var_Save(char* var, double num, int tp, char* var_name[], double data[], int
 		
 int Fun_Save(char* var, int tp, char* fun_name[], int type[])
 {
-	int idx = Find_index(var, var_name);
+	int idx = Find_Fun_index(var, var_name);
 	char * tmp = (char*)malloc(sizeof(char) * 100);
 	
 	if(idx == -1)
