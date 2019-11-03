@@ -4,7 +4,6 @@
 #include <string.h>
 
 #include "find_data.h"
-#include "make_node.h"
 
 extern int yylex(void);
 extern void yyterminate();
@@ -13,8 +12,11 @@ extern int yyerror(const char *s);
 char * var_name[1000] = { 0 };
 char * fun_name[1000] = { 0 };
 double data[1000] = { 0 };
-int type[1000] = { 0 };	//double : 1, float : 2, int : 3, str : 4, char : 5
-int idx = 0;
+//Type value - 1 : INT, 2 : FLOAT, 3 : DOUBLE, 4 : STRING, 5 : CHAR
+int var_type[100] = { 0 };
+//Type value - 1 : INT, 2 : FLOAT, 3 : DOUBLE, 4 : STRING, 5 : CHAR, 6 : UNIT, 7 : ANY
+int fun_type[100] = { 0 };
+int idx = 0, err = 0;
 
 %}
 %union { double d_var; float f_var; int i_var; char* s_var; char c_var}
@@ -47,6 +49,8 @@ int idx = 0;
 %type <d_var> cal_sent
 %type <d_var> step_count
 %type <d_var> ret_type
+%type <d_var> decl_content
+%type <d_var> list_content
 
 %token <d_var> NUMBER
 %token <s_var> ID
@@ -165,13 +169,13 @@ param:	ID COLUMN type param COMMA {
     |	ID COLUMN type		{
 	}
     ;
-type:	INT	{
+type:	INT	{ $$ = 1;
     	}
-    |	FLOAT	{
+    |	FLOAT	{ $$ = 2;
 	}
-    |	DOUBLE	{
+    |	DOUBLE	{ $$ = 3;
 	}
-    |	STRING	{
+    |	STRING	{ $$
 	}
     |	CHAR	{
 	}
@@ -190,7 +194,7 @@ ret_type: COLUMN type {
     ;
 fun_body: M_OPEN eval RETURN expr M_CLOSE	{ $$ = $3;
 	}
-    |	  M_OPEN  eval M_CLOSE	{ $$ = $1;
+    |	  M_OPEN eval M_CLOSE	{ $$ = $1;
 	}
     |	  EQUAL calc_sent	{
 	}
@@ -206,7 +210,9 @@ for_stt: FOR OPEN for_condition CLOSE M_OPEN loop_body M_CLOSE {
 loop_body: eval		{
 	 }
     ;
-when_body: expr ARROW STR EOL{
+when_body: expr ARROW STR when_body{
+	}
+    |	   epsilon	{
 	}
     ;
 when_stt:  WHEN OPEN ID CLOSE M_OPEN when_body M_CLOSE	{
@@ -303,21 +309,45 @@ withelse:	ELSEIF expr withelse	{
 	|	ESLE expr		{
 		}
 	;
-val_decl:	ID EQUAL cal_sent COMMA val_decl {
+val_decl:	ID EQUAL decl_content COMMA val_decl {
 		}
  	|	ID	{
 		}
-	|	ID EQUAL cal_sent	{
+	|	ID EQUAL decl_content	{
+		}
+	|	ID COLUMN type EQUAL decl_content COMMA val_decl {
+		}
+	|	ID COLUMN type EQUAL	{
+		}
+	|	ID COLUMN type EQUAL decl_content {
+		}
+	;
+var_decl:	ID EQUAL decl_content COMMA var_decl {
+		}
+ 	|	ID	{
+		}
+	|	ID EQUAL decl_content	{
+		}
+	|	ID COLUMN type EQUAL decl_content COMMA var_decl {
+		}
+	|	ID COLUMN type EQUAL	{
+		}
+	|	ID COLUMN type EQUAL decl_content {
+		}
+	;
+decl_content:	calc_sent	{
+		}
+	|	ID		{
+		}
+	|	LIST OPEN list_content CLOSE	{
+		}
+	;
+list_content:	STR 		{
+	    	}
+	|	COMMA list_content	{
 		}
 	;
 
-val_decl:	ID EQUAL cal_sent COMMA var_decl {
-		}
- 	|	ID	{
-		}
-	|	ID EQUAL cal_sent	{
-		}
-	;
 epslion: /*empty*/	{} ;
 %%
 

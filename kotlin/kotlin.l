@@ -8,6 +8,8 @@
 extern int yyerror(const char*);
 %}
 
+%%
+
 NUMBER [0-9]+[.]?[0-9]*
 ID [a-zA-Z]+[a-zA-z0-9_]*
 STR [a-zA-Z0-9_ \t\r\n$.,;!?]+
@@ -34,13 +36,13 @@ IN	in
 DOWNTO downTo
 STEP	step
 LIST	listof
-INT	int | Int
-FLOAT	float | Float
-DOUBLE	double | Double
-STRING	string | String
-CHAR	char | Char
-ANY	any | Any
-UNIT	Unit | unit
+INT	(int) | (Int)
+FLOAT	(float) | (Float)
+DOUBLE	(double) | (Double)
+STRING	(string) | (String)
+CHAR	(char) | (Char)
+ANY	(any) | (Any)
+UNIT	(Unit) | (unit)
 
 %%
 
