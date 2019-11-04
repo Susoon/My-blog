@@ -93,25 +93,25 @@ int Var_Save(char* var, double num, int tp, char* var_name[], double data[], int
 
 		free(tmp);
 
-		return 0;
+		return i;
 	}
 	
 	data[idx] = num;
 
 	free(tmp);
 
-	return 0;
+	return idx;
 }
 		
 int Fun_Save(char* var, int tp, char* fun_name[], int type[])
 {
-	int idx = Find_Fun_index(var, var_name);
+	int idx = Find_Fun_index(var, fun_name);
 	char * tmp = (char*)malloc(sizeof(char) * 100);
 	
 	if(idx == -1)
 	{
 		int i, j;
-		for(i = 0; funf_name[i] != 0; i++);
+		for(i = 0; fun_name[i] != 0; i++);
 
 		for(j = 0; range(var[j]); j++)
 		{
@@ -126,12 +126,12 @@ int Fun_Save(char* var, int tp, char* fun_name[], int type[])
 
 		free(tmp);
 
-		return 0;
+		return i;
 	}
 	
 	free(tmp);
 
-	return 0;
+	return -1;
 }
 
 #endif

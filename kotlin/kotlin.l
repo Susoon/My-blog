@@ -3,12 +3,11 @@
 #include <string.h>
 
 #include "stod.h"
-#include "expr.tab.h"
+#include "kotlin.tab.h"
 
 extern int yyerror(const char*);
 %}
 
-%%
 
 NUMBER [0-9]+[.]?[0-9]*
 ID [a-zA-Z]+[a-zA-z0-9_]*
@@ -36,13 +35,13 @@ IN	in
 DOWNTO downTo
 STEP	step
 LIST	listof
-INT	(int) | (Int)
+INT	(Int) | (int)
 FLOAT	(float) | (Float)
 DOUBLE	(double) | (Double)
 STRING	(string) | (String)
-CHAR	(char) | (Char)
-ANY	(any) | (Any)
-UNIT	(Unit) | (unit)
+CHAR	(char) | [Char]
+ANY	(any) | [Any]
+UNIT	(unit) | (Unit]
 
 %%
 
