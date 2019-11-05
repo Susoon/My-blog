@@ -70,7 +70,6 @@ int Check_Type_Not_Saved(double value);
 %token <d_var> FILE_IMPORT
 %token <d_var> VAL
 %token <d_var> VAR
-%token <d_var> THEN
 %token <d_var> ELSE
 %token <d_var> NUL
 %token <d_var> RETURN

@@ -22,7 +22,6 @@ VAL val
 VAR var
 IF if
 ELSEIF elseif
-THEN then
 ELSE else
 NUL null
 RETURN return
@@ -35,13 +34,13 @@ IN	in
 DOWNTO downTo
 STEP	step
 LIST	listof
-INT	(Int) | (int)
-FLOAT	(float) | (Float)
-DOUBLE	(double) | (Double)
-STRING	(string) | (String)
-CHAR	(char) | [Char]
-ANY	(any) | [Any]
-UNIT	(unit) | (Unit]
+INT	(I|i)nt
+FLOAT	(F|f)loat
+DOUBLE	(D|d)ouble
+STRING	(s|S)tring
+CHAR	(c|C)har
+ANY	(a|A)ny
+UNIT	(u|U)nit
 
 %%
 
@@ -58,49 +57,49 @@ UNIT	(unit) | (Unit]
 	return STR;
 }
 
-{FUNC} { return FUN;
-}
-
-{VAL} { return VAL;
-}
-
 {FILE_PACK}	{ return FILE_PACK;
 }
 
 {FILE_IMPORT}	{ return FILE_IMPORT;
 }
 
-{IMPORT} { return IMPORT;
+{SPACE} { /* ignore */ 
 }
 
 {PACK}	{ return PACK;
 }
 
+{FUNC} { return FUNC;
+}
+
+{VAL} { return VAL;
+}
+
 {VAR}	{ return VAR;
+}
+
+{IMPORT} { return IMPORT;
 }
 
 {IF}	{ return IF;
 }
 
-{THEN}	{ return THEN;
+{ELSEIF} { return ELSEIF;
 }
 
 {ELSE}	{ return ELSE;
 }
 
-{ELSEIF} { return ELSEIF;
+{NUL}	{ return NUL;
 }
 
-{NUL}	{ return NUL;
+{RETURN} { return RETURN;
 }
 
 {FOR} 	{ return FOR;
 }
 
 {WHILE}	{ return WHILE;
-}
-
-{RETURN} { return RETURN;
 }
 
 {WHEN}	{ return WHEN;
@@ -263,9 +262,6 @@ UNIT	(unit) | (Unit]
 }
 
 "]"	{ return B_CLOSE;
-}
-
-{SPACE} { /* ignore */ 
 }
 
 .	{  printf("%lf\n", (double)yytext[0]);
