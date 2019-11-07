@@ -10,47 +10,41 @@ extern int yyerror(const char*);
 
 
 NUMBER [0-9]+[.]?[0-9]*
-ID [a-zA-Z]+[a-zA-z0-9_]*
-STR [a-zA-Z0-9_ \t\r\n$.,;!?]+
+STR "[a-zA-Z0-9_ \t\r$.,;!?]+"
 FILE_PACK ([a-zA-z0-9].)+[a-zA-Z0-9]
-FILE_IMPORT [a-zA-z0-9](.[a-zA-z0-9])*
-SPACE [ \t\r\n]+
-IMPORT import
-PACK package
-FUNC fun
-VAL val
-VAR var
-IF if
-ELSEIF elseif
-ELSE else
-NUL null
-RETURN return
-FOR for
-WHILE while
-WHEN when
-REPLACE replace
+FILE_IMPORT [a-zA-z0-9](.[a-zA-z0-9])+
+SPACE	[ \r\t\n]+
+PACK	package
+FUNC	fun
+VAL	val
+VAR	var
+IMPORT	import
+IF	if
+ELSEIF	esleif
+ELSE	else
+NUL	null
+RETURN	return
+FOR	for
+WHILE	while
+WHEN	when
 IS	is
 IN	in
-DOWNTO downTo
+DOWNTO	downto
 STEP	step
-LIST	listof
+LIST	list
 INT	(I|i)nt
 FLOAT	(F|f)loat
 DOUBLE	(D|d)ouble
-STRING	(s|S)tring
-CHAR	(c|C)har
-ANY	(a|A)ny
-UNIT	(u|U)nit
+STRING	(S|s)tring
+CHAR	(C|c)har
+ANY	(A|a)ny
+UNIT	(U|u)nit
 
+ID [a-zA-Z_][a-zA-Z_0-9]*
 %%
-
 
 {NUMBER} { yylval.d_var = stod(yytext);
 	return NUMBER;
-}
-
-{ID} { yylval.s_var = yytext;	
-	return ID;
 }
 
 {STR} { yylval.s_var = yytext;
@@ -96,16 +90,13 @@ UNIT	(u|U)nit
 {RETURN} { return RETURN;
 }
 
-{FOR} 	{ return FOR;
+{FOR}	{ return FOR;
 }
 
 {WHILE}	{ return WHILE;
 }
 
 {WHEN}	{ return WHEN;
-}
-
-{REPLACE} { return REPLACE;
 }
 
 {IS}	{ return IS;
@@ -174,9 +165,6 @@ UNIT	(u|U)nit
 "}"	{ return M_CLOSE;
 }
 
-"\""	{ return QUOTE;
-}
-
 "\\\\"	{ return COMMENT;
 }
 
@@ -199,9 +187,6 @@ UNIT	(u|U)nit
 }
 
 "$"	{ return CALL;
-}
-
-"."	{ return DOT;
 }
 
 "?"	{ return QUESTION;
@@ -258,10 +243,8 @@ UNIT	(u|U)nit
 "->"	{ return ARROW;
 }
 
-"["	{ return B_OPEN;
-}
-
-"]"	{ return B_CLOSE;
+{ID} { yylval.s_var = yytext;	
+	return ID;
 }
 
 .	{  printf("%lf\n", (double)yytext[0]);
