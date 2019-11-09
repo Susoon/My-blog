@@ -8,11 +8,9 @@
 extern int yyerror(const char*);
 %}
 
-
-NUMBER [0-9]+[.]?[0-9]*
-STR "[a-zA-Z0-9_ \t\r$.,;!?]+"
-FILE_PACK ([a-zA-z0-9].)+[a-zA-Z0-9]
-FILE_IMPORT [a-zA-z0-9](.[a-zA-z0-9])+
+NUMBER 	([0-9])+([.])?([0-9])*
+STR 	["]([a-zA-Z0-9_ \t\r$.,;!?])+["]
+FILE_SEP ([a-zA-Z][.])+[a-zA-Z]
 SPACE	[ \r\t\n]+
 PACK	package
 FUNC	fun
@@ -20,7 +18,7 @@ VAL	val
 VAR	var
 IMPORT	import
 IF	if
-ELSEIF	esleif
+ELSEIF	elseif
 ELSE	else
 NUL	null
 RETURN	return
@@ -39,8 +37,11 @@ STRING	(S|s)tring
 CHAR	(C|c)har
 ANY	(A|a)ny
 UNIT	(U|u)nit
-
+MAIN	main
 ID [a-zA-Z_][a-zA-Z_0-9]*
+COMMENT		[/][/]([a-zA-Z0-9_ \t\r$.,;!?])+
+COMMENT_LONG	[/][*]([a-zA-Z0-9_ \t\r$.,;!?])+[*][/]
+
 %%
 
 {NUMBER} { yylval.d_var = stod(yytext);
@@ -51,10 +52,8 @@ ID [a-zA-Z_][a-zA-Z_0-9]*
 	return STR;
 }
 
-{FILE_PACK}	{ return FILE_PACK;
-}
-
-{FILE_IMPORT}	{ return FILE_IMPORT;
+{FILE_SEP}	{ yylval.s_var = yytext;
+		return FILE_SEP;
 }
 
 {SPACE} { /* ignore */ 
@@ -135,6 +134,21 @@ ID [a-zA-Z_][a-zA-Z_0-9]*
 {UNIT}	{ return UNIT;
 }
 
+{MAIN}	{ return MAIN;
+}
+
+{ID} { yylval.s_var = yytext;	
+	return ID;
+}
+
+{COMMENT} { yylval.s_var = yytext; 
+		return COMMENT;
+}
+
+{COMMENT_LONG}	{ yylval.s_var = yytext;
+		return COMMENT_LONG;
+}
+
 ")"	{ return CLOSE;
 }
 
@@ -163,15 +177,6 @@ ID [a-zA-Z_][a-zA-Z_0-9]*
 }
 
 "}"	{ return M_CLOSE;
-}
-
-"\\\\"	{ return COMMENT;
-}
-
-"\\*"	{ return COMMENT_OPEN;
-}
-
-"*\\"	{ return COMMENT_CLOSE;
 }
 
 ":"	{ return COLUMN;
@@ -243,9 +248,6 @@ ID [a-zA-Z_][a-zA-Z_0-9]*
 "->"	{ return ARROW;
 }
 
-{ID} { yylval.s_var = yytext;	
-	return ID;
-}
 
 .	{  printf("%lf\n", (double)yytext[0]);
            yyerror("unexpected input"); 
