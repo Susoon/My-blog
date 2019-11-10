@@ -9,7 +9,7 @@ extern int yyerror(const char*);
 %}
 
 NUMBER 	([0-9])+([.])?([0-9])*
-STR 	["]([a-zA-Z0-9_ \t\r$.,;!?])+["]
+STR 	["]([a-zA-Z0-9_ \t\r\$.,;&!?\(\)\{\}\[\]\+\-\*'=><\:\/\n\:])*["]
 FILE_SEP ([a-zA-Z][.])+[a-zA-Z]
 SPACE	[ \r\t\n]+
 PACK	package
@@ -27,10 +27,11 @@ WHILE	while
 WHEN	when
 IS	is
 IN	in
-DOWNTO	downto
+DOWNTO	downTo
 STEP	step
-LIST	list
+LIST	listOf
 INT	(I|i)nt
+LONG	(L|l)ong
 FLOAT	(F|f)loat
 DOUBLE	(D|d)ouble
 STRING	(S|s)tring
@@ -39,8 +40,8 @@ ANY	(A|a)ny
 UNIT	(U|u)nit
 MAIN	main
 ID [a-zA-Z_][a-zA-Z_0-9]*
-COMMENT		[/][/]([a-zA-Z0-9_ \t\r$.,;!?])+
-COMMENT_LONG	[/][*]([a-zA-Z0-9_ \t\r$.,;!?])+[*][/]
+COMMENT		[/][/]([a-zA-Z0-9_ \t\r\$.,;&!?\(\)\{\}\+\-\/\*\"'=><\:])*
+COMMENT_LONG	[/][*]([a-zA-Z0-9_ \t\r\$.,;&!?\(\)\{\}\+\-\*\"'=><\:\/\n\:])*[*][/]
 
 %%
 
@@ -116,6 +117,9 @@ COMMENT_LONG	[/][*]([a-zA-Z0-9_ \t\r$.,;!?])+[*][/]
 {INT}	{ return INT;
 }
 
+{LONG}	{ return LONG;
+}
+
 {FLOAT} { return FLOAT;
 }
 
@@ -171,6 +175,9 @@ COMMENT_LONG	[/][*]([a-zA-Z0-9_ \t\r$.,;!?])+[*][/]
 }
 
 ".."	{ return DOUBLEDOT;
+}
+
+"."	{ return DOT;
 }
 
 "{"	{ return M_OPEN;
@@ -248,6 +255,11 @@ COMMENT_LONG	[/][*]([a-zA-Z0-9_ \t\r$.,;!?])+[*][/]
 "->"	{ return ARROW;
 }
 
+"++"	{ return INC;
+}
+
+"--"	{ return DEC;
+}
 
 .	{  printf("%lf\n", (double)yytext[0]);
            yyerror("unexpected input"); 

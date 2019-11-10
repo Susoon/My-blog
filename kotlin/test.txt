@@ -35,14 +35,14 @@ fun main() {
 
 fun main() {
     val a: Int = 1  // immediate assignment
-    val b = 2   // `Int` type is inferred
+    val b = 2   // 'Int' type is inferred
     val c: Int  // Type required when no initializer is provided
     c = 3       // deferred assignment
     println("a = $a, b = $b, c = $c")
 }
 
 fun main() {
-    var x = 5 // `Int` type is inferred
+    var x = 5 // 'Int' type is inferred
     x += 1
     println("x = $x")
 }
@@ -73,7 +73,7 @@ fun main() {
 
     a = 2
     // arbitrary expression in template:
-    val s2 = "${s1.replace("is", "was")}, but now is $a"
+    val s2 = "${s1.replace(is, was)}, but now is $a"
     println(s2)
 }
 
@@ -115,7 +115,7 @@ fun printProduct(arg1: String, arg2: String) {
     val x = parseInt(arg1)
     val y = parseInt(arg2)
 
-    // Using `x * y` yields error because they may hold nulls.
+    // Using 'x * y' yields error because they may hold nulls.
     if (x != null && y != null) {
         // x and y are automatically cast to non-nullable after null check
         println(x * y)
@@ -161,43 +161,41 @@ fun main() {
 
 fun getStringLength(obj: Any): Int? {
     if (obj is String) {
-        // `obj` is automatically cast to `String` in this branch
+        // 'obj' is automatically cast to 'String' in this branch
         return obj.length
     }
 
-    // `obj` is still of type `Any` outside of the type-checked branch
+    // 'obj' is still of type 'Any' outside of the type-checked branch
     return null
 }
 
 
 fun main() {
     fun printLength(obj: Any) {
-        println("'$obj' string length is ${getStringLength(obj) ?: "... err, not a string"} ")
+        println("'$obj' string length is ${getStringLength(obj) ?: ... err, not a string} ")
     }
     printLength("Incomprehensibilities")
     printLength(1000)
-    printLength(listOf(Any()))
 }
 
 fun getStringLength(obj: Any): Int? {
     if (obj !is String) return null
 
-    // `obj` is automatically cast to `String` in this branch
+    // 'obj' is automatically cast to 'String' in this branch
     return obj.length
 }
 
 
 fun main() {
     fun printLength(obj: Any) {
-        println("'$obj' string length is ${getStringLength(obj) ?: "... err, not a string"} ")
+        println("'$obj' string length is ${getStringLength(obj) ?: ... err, not a string} ")
     }
     printLength("Incomprehensibilities")
     printLength(1000)
-    printLength(listOf(Any()))
 }
 
 fun getStringLength(obj: Any): Int? {
-    // `obj` is automatically cast to `String` on the right-hand side of `&&`
+    // 'obj' is automatically cast to 'String' on the right-hand side of '&&'
     if (obj is String && obj.length > 0) {
         return obj.length
     }
@@ -208,7 +206,7 @@ fun getStringLength(obj: Any): Int? {
 
 fun main() {
     fun printLength(obj: Any) {
-        println("'$obj' string length is ${getStringLength(obj) ?: "... err, is empty or not a string at all"} ")
+        println("'$obj' string length is ${getStringLength(obj) ?: ... err, is empty or not a string at all} ")
     }
     printLength("Incomprehensibilities")
     printLength("")
@@ -240,9 +238,9 @@ fun main() {
 
 fun describe(obj: Any): String =
     when (obj) {
-        1          -> "One"
-        "Hello"    -> "Greeting"
-        is Long    -> "Long"
+	1	   -> "One"
+	"Hello"	   -> "Greeting"
+	is Long    -> "Long"
         !is String -> "Not a string"
         else       -> "Unknown"
     }
@@ -250,7 +248,7 @@ fun describe(obj: Any): String =
 fun main() {
     println(describe(1))
     println(describe("Hello"))
-    println(describe(1000L))
+    println(describe(1000))
     println(describe(2))
     println(describe("other"))
 }
@@ -258,8 +256,8 @@ fun main() {
 fun main() {
     val x = 10
     val y = 9
-    if (x in 1..y+1) {
-        println("fits in range")
+    if(x in 1..y+1){
+	println("fits in range")
     }
 }
 
