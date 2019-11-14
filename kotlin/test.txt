@@ -248,7 +248,7 @@ fun describe(obj: Any): String =
 fun main() {
     println(describe(1))
     println(describe("Hello"))
-    println(describe(1000))
+    println(describe(1000L))
     println(describe(2))
     println(describe("other"))
 }
@@ -311,6 +311,7 @@ fun main() {
     .map { it.toUpperCase() }
     .forEach { println(it) }
 }
+
 fun main() {
     val rectangle = Rectangle(5.0, 2.0)
     val triangle = Triangle(3.0, 4.0, 5.0)
@@ -318,8 +319,8 @@ fun main() {
     println("Area of triangle is ${triangle.calculateArea()}, its perimeter is ${triangle.perimeter}")
 }
 
-abstract class Shape(val sides: List<Double>) {
-    val perimeter: Double get() = sides.sum()
+abstract class Shape(val sides: LIST<Double>) {
+    val perimeter: Double = sides.sum()
     abstract fun calculateArea(): Double
 }
 
@@ -331,7 +332,7 @@ class Rectangle(
     var height: Double,
     var length: Double
 ) : Shape(listOf(height, length, height, length)), RectangleProperties {
-    override val isSquare: Boolean get() = length == height
+    override val isSquare: Boolean = length == height
     override fun calculateArea(): Double = height * length
 }
 

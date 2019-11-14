@@ -12,11 +12,13 @@ extern int yyerror(const char *s);
 char * var_name[1000] = { 0 };
 char * fun_name[1000] = { 0 };
 double data[1000] = { 0 };
-//Type value - 0 : Not_defined 1 : INT, 2 : LONG, 3 : FLOAT, 4 : DOUBLE, 5 : STRING, 6 : CHAR, const : +10
+//Type value - 0 : Not_defined 1 : INT, 2 : LONG, 3 : FLOAT, 4 : DOUBLE, 5 : STRING, 6 : CHAR, 7 : BOOL, const : +10
 int var_type[100] = { 0 }; 
-//Type value - 0 : Not_defined 1 : INT, 2 : LONG, 3 : FLOAT, 4 : DOUBLE, 5 : STRING, 6 : CHAR, 7 : UNIT, 8 : ANY, const : +10, question : +20
+//Type value - 0 : Not_defined 1 : INT, 2 : LONG, 3 : FLOAT, 4 : DOUBLE, 5 : STRING, 6 : CHAR, 7 : BOOL, 8 : UNIT, 9 : ANY, const : +10, question : +20, class_fct : +100
 int fun_type[100] = { 0 };
-int var_idx = 0, fun_idx = 0, err = 0, tmp_data, tmp_idx;
+char * class_type[1000] = { 0 };
+char * class_name[1000] = { 0 };
+int var_idx = 0, fun_idx = 0, err = 0, tmp_blank, tmp_blank, tmp_idx;
 
 int Check_Type_Saved(char * name);
 int Check_Type_Not_Saved(double value);
@@ -24,7 +26,7 @@ void Print_Blank(double n);
 
 %}
 
-%union { double d_var; float f_var; int i_var; char* s_var; char c_var; char** sp_var}
+%union { double d_var; float f_var; int i_var; long l_var; char* s_var; char c_var; char** sp_var}
 
 %type <d_var> start
 %type <d_var> eval
@@ -32,8 +34,8 @@ void Print_Blank(double n);
 %type <d_var> term
 %type <d_var> factor
 %type <d_var> signed_factor
-%type <d_var> var_decl
-%type <d_var> val_decl
+%type <d_var> id_decl
+%type <d_var> id_decl_stt
 %type <d_var> fun_body
 %type <d_var> loop_body
 %type <d_var> cf_body
@@ -66,7 +68,20 @@ void Print_Blank(double n);
 %type <d_var> cf
 %type <d_var> when_id
 %type <d_var> when_condition
+%type <d_var> lambda
+%type <d_var> class_id_decl
+%type <d_var> class_decl
+%type <d_var> class_method_decl
+%type <d_var> class_stt
+%type <d_var> inheritance
+%type <d_var> generic
+%type <d_var> var_decl
+%type <d_var> val_decl
+%type <d_var> fun_type
+%type <d_var> class_var_decl
+%type <d_var> class_val_decl
 
+%token <l_var> L_NUMBER
 %token <d_var> NUMBER
 %token <s_var> STR
 %token <d_var> FILE_SEP
@@ -87,19 +102,25 @@ void Print_Blank(double n);
 %token <d_var> IN
 %token <d_var> DOWNTO
 %token <d_var> STEP
-%token <sp_var> LIST
+%token <d_var> LISTOF
+%token <d_var> LIST
 %token <i_var> INT
 %token <i_var> FLOAT
 %token <i_var> LONG
 %token <i_var> DOUBLE
 %token <i_var> STRING
 %token <i_var> CHAR
+%token <i_var> BOOL
 %token <i_var> ANY
 %token <i_var> UNIT
 %token <d_var> MAIN
 %token <s_var> ID
 %token <s_var> COMMENT
 %token <s_var> COMMENT_LONG
+%token <i_var> ABST
+%token <i_var> CLASS
+%token <i_var> OVER
+%token <d_var> INTER
 
 %left  M_OPEN M_CLOSE
 %left  COMMA ARROW
@@ -153,12 +174,12 @@ start:	IMPORT FILE_SEP start
 eval:	expr eval	
     	{
 		if($1 > $2)
-			tmp_data = $1;
+			tmp_blank = $1;
 		else
-			tmp_data = $2;
-		Print_Blank(tmp_data);
+			tmp_blank = $2;
+		Print_Blank(tmp_blank);
 		printf("eval <- expr eval\n");
-		$$ = tmp_data + 1; 
+		$$ = tmp_blank + 1; 
     	}
     |	expr	
 	{
@@ -168,14 +189,13 @@ eval:	expr eval
 	}
     |	main_fun eval
 	{
-		printf("\n\n");
 		if($1 > $2)
-			tmp_data = $1;
+			tmp_blank = $1;
 		else
-			tmp_data = $2;
-		Print_Blank(tmp_data);
+			tmp_blank = $2;
+		Print_Blank(tmp_blank);
 		printf("expr <- mainfun\n");
-		$$ = tmp_data + 1;
+		$$ = tmp_blank + 1;
 	}
     ;
 expr:	for_stt
@@ -202,16 +222,16 @@ expr:	for_stt
 		printf("expr <- when_stt\n");
 		$$ = $1 + 1;
 	}
-    |	VAR var_decl
+    |	var_decl
 	{
-		Print_Blank($2);
-		printf("expr <- VAR var_decl\n");
+		Print_Blank($1);
+		printf("expr <- var_decl\n");
 		$$ = $1 + 1;
 	}
-    |	VAL val_decl
+    |	val_decl
 	{ 
-		Print_Blank($2);
-		printf("expr <- VAL val_decl\n");
+		Print_Blank($1);
+		printf("expr <- val_decl\n");
 		$$ = $1 + 1;
 	}
     |	cal_sent	
@@ -237,18 +257,203 @@ expr:	for_stt
     |	ID assign cal_sent
 	{
 		if($2 > $3)
-			tmp_data = $2;
+			tmp_blank = $2;
 		else
-			tmp_data = $3;	
-		Print_Blank(tmp_data);
+			tmp_blank = $3;	
+		Print_Blank(tmp_blank);
 		printf("expr <- ID assign cal_sent\n");
-		$$ = tmp_data + 1;
+		$$ = tmp_blank + 1;
 	}
     |	ID EQUAL STR
 	{
 		Print_Blank(0);
 		printf("expr <- ID EQUAL STR\n");
 		$$ = 1;
+	}
+    |	ID lambda
+	{
+		Print_Blank($2);
+		printf("expr <- ID lambda\n");
+		$$ = $2;
+	}
+    |	class_stt
+	{
+		Print_Blank($1);
+		printf("expr <- class_decl\n");
+		$$ = $1;
+	}
+    |	epsilone
+	{
+		/*empty*/
+	}
+    ;
+generic:	GREATER type LESS
+		{
+			Print_Blank($2);
+			printf("generic <- GREATER type LESS\n");
+			$$ = $2;
+		}
+	;
+class_stt:	ABST CLASS ID OPEN class_id_decl CLOSE inheritance M_OPEN class_decl M_CLOSE
+	  	{
+			tmp_blank = ($5 > $7) ? $5 : $7;
+			tmp_blank = (tmp_blank > $9) ? tmp_blank : $9;
+			Print_Blank(tmp_blank);
+			printf("class_stt <- ABST CLASS ID OPEN class_id_decl CLOSE inheritance M_OPEN class_decl M_CLOSE\n");
+			$$ = tmp_blank + 1;
+		}
+	|	CLASS ID OPEN class_id_decl CLOSE inheritance M_OPEN class_decl M_CLOSE
+	  	{
+			tmp_blank = ($4 > $6) ? $4 : $6;
+			tmp_blank = (tmp_blank > $8) ? tmp_blank : $8;
+			Print_Blank(tmp_blank);
+			printf("class_stt <- CLASS ID OPEN class_id_decl CLOSE inheritance M_OPEN class_decl M_CLOSE\n");
+			$$ = tmp_blank + 1;
+		}
+	|	INTER ID M_OPEN class_decl M_CLOSE
+	  	{
+			Print_Blank($4);
+			printf("class_stt <- INTER ID M_OPEN class_decl M_CLOSE\n");
+			$$ = $4 + 1;
+		}
+	;
+val_decl:	VAL id_decl_stt
+	    	{
+			Print_Blank($2);
+			printf("val_decl <- VAL id_decl_stt\n");
+			$$ = $2 + 1;
+		}
+	;
+var_decl:	VAR id_decl_stt
+	    	{
+			Print_Blank($2);
+			printf("var_decl <- VAR id_decl_stt\n");
+			$$ = $2 + 1;
+		}
+	;
+class_val_decl:	VAL id_decl
+	    	{
+			Print_Blank($2);
+			printf("class_val_decl <- VAL id_decl\n");
+			$$ = $2 + 1;
+		}
+	;
+class_var_decl:	VAR id_decl
+	    	{
+			Print_Blank($2);
+			printf("class_var_decl <- VAR id_decl\n");
+			$$ = $2 + 1;
+		}
+	;
+class_id_decl:	class_val_decl COMMA class_id_decl
+	     	{
+			tmp_blank = ($1 > $3) ? $1 : $3;
+			Print_Blank(tmp_blank);
+			printf("class_id_decl <- class_val_decl COMMA class_id_decl\n");
+			$$ = tmp_blank + 1;
+		}
+	|	class_var_decl COMMA class_id_decl
+	     	{
+			tmp_blank = ($1 > $3) ? $1 : $3;
+			Print_Blank(tmp_blank);
+			printf("class_id_decl <- class_var_decl COMMA class_id_decl\n");
+			$$ = tmp_blank + 1;
+		}
+	|	class_val_decl
+	     	{
+			Print_Blank($1);
+			printf("class_id_decl <- class_val_decl\n");
+			$$ = $1 + 1;
+		}
+	|	class_var_decl
+	     	{
+			Print_Blank($1);
+			printf( "class_id_decl <- class_var_Decl\n");
+			$$ = $1 + 1;
+		}
+	;
+class_decl:	class_id_decl class_decl
+	  	{
+			tmp_blank = ($1 > $2) ? $1 : $2;
+			Print_Blank(tmp_blank);
+			printf("class_decl <- class_id_decl class_decl\n");
+			$$ = tmp_blank + 1;
+		}
+	|	class_method_decl class_decl
+	  	{
+			$$ = tmp_blank + 1;
+			tmp_blank = ($1 > $2) ? $1 : $2;
+			Print_Blank(tmp_blank);
+			printf("class_decl <- class_method_decl class_decl\n");
+			$$ = tmp_blank + 1;
+		}
+	|	epsilone
+		{
+			/*empty*/
+		}
+	;
+class_method_decl:	ABST fun_stt
+		 	{
+				Print_Blank($2);
+				printf("class_method_decl <- ABST fun_stt\n");
+				$$ = $2 + 1;
+			}
+	|		OVER fun_stt
+		 	{
+				Print_Blank($2);
+				printf("class_method_decl <- OVER fun_stt\n");
+				$$ = $2 + 1;
+			}
+	|		fun_stt
+		 	{
+				Print_Blank($1);
+				printf("class_method_decl <- OVER fun_stt\n");
+				$$ = $1 + 1;
+			}
+	;
+inheritance:	COLUMN ID OPEN argument CLOSE inheritance
+	   	{
+			tmp_blank = ($4 > $6) ? $4 : $6;
+			Print_Blank(tmp_blank);
+			printf("inheritance <- COLUMN ID OPEN argument CLOSE inheritance\n");
+			$$ = tmp_blank + 1;
+		}
+	|	ID COMMA inheritance
+		{
+			Print_Blank($3);
+			printf("inheritance <- ID COMMA inheritance\n");
+			$$ = $3 + 1;
+		}
+	|	ID OPEN argument CLOSE COMMA inheritance
+		{
+			tmp_blank = ($3 > $6) ? $3 : $6;
+			Print_Blank(tmp_blank);
+			printf("inheritance <- ID OPEN argument CLOSE COMMA inheritance\n");
+			$$ = tmp_blank + 1;
+		}
+	|	ID
+		{
+			Print_Blank(0);
+			printf("inheritance <- ID\n");
+			$$ = 1;
+		}
+	|	ID OPEN argument CLOSE
+		{
+			Print_Blank($3);
+			printf("inheritance <- ID OPEN argument CLOSE\n");
+			$$ = $3 + 1;
+		}
+	|	epsilone
+		{
+			/*empty*/
+		}
+	;
+lambda: DOT ID M_OPEN cal_sent M_CLOSE lambda
+      	{
+		tmp_blank = ($4 > $6) ? $4 : $6;
+		Print_Blank(tmp_blank);
+		printf("lambda <- DOT ID M_OPEN cal_sent M_CLOSE lambda\n");
+		$$ = tmp_blank;
 	}
     |	epsilone
 	{
@@ -296,17 +501,17 @@ main_fun: FUNC MAIN OPEN CLOSE fun_body
     ;
 cal_sent: cal_sent PLUS term	
        	  {	
-		tmp_data = ($1 > $3) ? $1 : $3;
-		Print_Blank(tmp_data);
+		tmp_blank = ($1 > $3) ? $1 : $3;
+		Print_Blank(tmp_blank);
 		printf("cal_sent <- cal_sent PLUS term\n");
-		$$ = tmp_data + 1;
+		$$ = tmp_blank + 1;
 	  }
     |	  cal_sent MINUS term
 	  {
-		tmp_data = ($1 > $3) ? $1 : $3;
-		Print_Blank(tmp_data);
+		tmp_blank = ($1 > $3) ? $1 : $3;
+		Print_Blank(tmp_blank);
 		printf("cal_sent <- cal_sent MINUS term\n");
-		$$ = tmp_data + 1;
+		$$ = tmp_blank + 1;
 	  }
     |	  term			
 	  { 
@@ -317,17 +522,17 @@ cal_sent: cal_sent PLUS term
     ;
 term:	term MULT signed_factor 
     	{ 
-		tmp_data = ($1 > $3) ? $1 : $3;
-		Print_Blank(tmp_data);
+		tmp_blank = ($1 > $3) ? $1 : $3;
+		Print_Blank(tmp_blank);
 		printf("term <- term MULT signed_factor\n");
-		$$ = tmp_data + 1;
+		$$ = tmp_blank + 1;
     	} 
     |	term DIV signed_factor	
 	{ 
-		tmp_data = ($1 > $3) ? $1 : $3;
-		Print_Blank(tmp_data);
+		tmp_blank = ($1 > $3) ? $1 : $3;
+		Print_Blank(tmp_blank);
 		printf("term <- term DIV signed_factor\n");
-		$$ = tmp_data + 1;
+		$$ = tmp_blank + 1;
 	} 
     |	signed_factor	
 	{ 
@@ -361,6 +566,12 @@ factor: NUMBER
 		printf("factor <- NUMBER\n");
 		$$ = 1;
         }
+    |	L_NUMBER	
+      	{
+		Print_Blank(0);
+		printf("factor <- L_NUMBER\n");
+		$$ = 1;
+	}
     |	ID 	
 	{ 
 		Print_Blank(0);
@@ -369,13 +580,13 @@ factor: NUMBER
 		//$$ = data[var_idx];
 		$$ = 1;
 	}
-    |	ID DOT ID OPEN param CLOSE
+    |	ID DOT fun_call 
 	{ 
-		Print_Blank($5);
-		printf("factor <- ID DOT ID OPEN param CLOSE\n");
+		Print_Blank($3);
+		printf("factor <- ID DOT fun_call\n");
 		//var_idx = Find_var_index($1, var_name);
 		//$$ = data[var_idx];
-		$$ = $5 + 1;
+		$$ = $3 + 1;
 	}	
     |	ID DOT ID
 	{ 
@@ -434,20 +645,33 @@ factor: NUMBER
 		Print_Blank(0);
 		printf("factor <- NULL\n");
 		$$ = 1;
-	}	
+	}
     ;
-param:	ID COLUMN type COMMA param 
+param:	ID COLUMN fun_type COMMA param 
      	{ 
-		tmp_data = ($3 > $5)? $3 : $5; 
-		Print_Blank(tmp_data);
-		printf("param <- ID COLUMN type COMMA param\n");
-		$$ = tmp_data + 1;	
+		tmp_blank = ($3 > $5)? $3 : $5; 
+		Print_Blank(tmp_blank);
+		printf("param <- ID COLUMN fun_type COMMA param\n");
+		$$ = tmp_blank + 1;	
      	}
-    |	ID COLUMN type		
+    |	ID COLUMN fun_type		
 	{
 		Print_Blank($3);
-		printf("param <- ID COLUMN type\n");
+		printf("param <- ID COLUMN fun_type\n");
 		$$ = $3 + 1;
+	}
+    |	VAL ID COLUMN fun_type COMMA param	
+	{
+		tmp_blank = ($4 > $6)? $4 : $6; 
+		Print_Blank(tmp_blank);
+		printf("param <- VAL ID COLUMN fun_type COMMA param\n");
+		$$ = tmp_blank + 1;
+	}
+    |	VAL ID COLUMN fun_type		
+	{
+		Print_Blank($4);
+		printf("param <- VAL ID COLUMN fun_type\n");
+		$$ = $4 + 1;
 	}
     |	epsilone
 	{
@@ -495,35 +719,56 @@ type:	INT
 		//$$ = 6;
 		$$ = 1;
 	}
-    |	UNIT	
-	{ 
+    |	BOOL
+	{
 		Print_Blank(0);
-		printf("type <- UNIT\n");
+		printf("type <- BOOL\n");
 		//$$ = 7;
 		$$ = 1;
 	}
-    |	ANY	
-	{ 
-		Print_Blank(0);
-		printf("type <- ANY\n");
-		//$$ = 8;
-		$$ = 1;
-	}
-    ;
-fun_stt:  FUNC ID OPEN param CLOSE ret_type fun_body 
-       	{
-		tmp_data = ($4 > $6)? $4 : $6;
-		tmp_data = (tmp_data > $7) ? tmp_data : $7;
-		Print_Blank(tmp_data);
-		printf("fun_stt <- FUNC ID OPEN param CLOSE ret_type fun_body\n");
-		printf("%s\n", $2);
-		$$ = tmp_data + 1;
-      	}
-    ;
-ret_type: COLUMN type 
+    |	LIST generic
 	{
 		Print_Blank($2);
-		printf("ret_type <- COLUMN type\n");
+		printf("type <- LIST generic\n");
+		$$ = $2 + 1;
+	}
+    ;
+fun_type:	type
+	  	{
+			Print_Blank($1);
+			printf("fun_type <- type\n");
+			$$ = $1 + 1;
+		}
+	|
+	  	UNIT	
+		{ 
+			Print_Blank(0);
+			printf("fun_type <- UNIT\n");
+			//$$ = 7;
+			$$ = 1;
+		}
+    	|	ANY	
+		{ 
+			Print_Blank(0);
+			printf("fun_type <- ANY\n");
+			//$$ = 8;
+			$$ = 1;
+		}
+    	;
+fun_stt:  FUNC ID OPEN param CLOSE ret_type fun_body 
+       	{
+		tmp_blank = ($4 > $6)? $4 : $6;
+		tmp_blank = (tmp_blank > $7) ? tmp_blank : $7;
+		Print_Blank(tmp_blank);
+		printf("fun_stt <- FUNC ID OPEN param CLOSE ret_type fun_body\n");
+		printf("%s\n", $2);
+		$$ = tmp_blank + 1;
+      	}
+    ;
+ret_type: COLUMN fun_type 
+	{
+		Print_Blank($2);
+		printf("ret_type <- COLUMN fun_type\n");
 		//$$ = $2;
 		$$ = $2 + 1;
 	}
@@ -541,10 +786,10 @@ ret_type: COLUMN type
     ;
 fun_body: M_OPEN eval RETURN cal_sent M_CLOSE	
 	{
-		tmp_data = ($2 > $4) ? $2 : $4;
-		Print_Blank(tmp_data);
+		tmp_blank = ($2 > $4) ? $2 : $4;
+		Print_Blank(tmp_blank);
 		printf("fun_body <- M_OPEN eval RETURN cal_sent M_CLOSE\n");
-		$$ = tmp_data + 1;
+		$$ = tmp_blank + 1;
 	}
     |	 M_OPEN eval RETURN M_CLOSE	
 	{
@@ -561,19 +806,19 @@ fun_body: M_OPEN eval RETURN cal_sent M_CLOSE
     |	  EQUAL cal_sent	
 	{
 		Print_Blank($2);
-		printf("EQUAL cal_sent\n");
+		printf("fun_body <- EQUAL cal_sent\n");
 		$$ = $2 + 1;	
 	}
     |	 EQUAL if_stt
 	{
 		Print_Blank($2);
-		printf("EQUAL if_stt\n");
+		printf("fun_body <- EQUAL if_stt\n");
 		$$ = $2 + 1;	
 	}
     |	 EQUAL when_stt
 	{
 		Print_Blank($2);
-		printf("EQUAL when_stt\n");
+		printf("fun_body <- EQUAL when_stt\n");
 		$$ = $2 + 1;	
 	}
     |	  epsilone		
@@ -583,16 +828,16 @@ fun_body: M_OPEN eval RETURN cal_sent M_CLOSE
     ;
 while_stt: WHILE OPEN condition CLOSE M_OPEN loop_body M_CLOSE 
 	 {
-		tmp_data = ($3 > $6) ? $3 : $6;
-		Print_Blank(tmp_data);
+		tmp_blank = ($3 > $6) ? $3 : $6;
+		Print_Blank(tmp_blank);
 		printf("while_stt <- WHILE OPEN condition CLOSE M_OPEN loop_body M_CLOSE\n");
-		$$ = tmp_data + 1;
+		$$ = tmp_blank + 1;
 	 }
     ;
 for_stt: FOR OPEN condition CLOSE M_OPEN loop_body M_CLOSE 
 	 {
-		tmp_data = ($3 > $6) ? $3 : $6;
-		Print_Blank(tmp_data);
+		tmp_blank = ($3 > $6) ? $3 : $6;
+		Print_Blank(tmp_blank);
 		printf("for_stt <- FOR OPEN condition CLOSE M_OPEN loop_body M_CLOSE\n");
 		$$ = $3 + 1;
       	 }
@@ -606,10 +851,10 @@ loop_body: eval
     ;
 when_body: when_id ARROW when_id when_body
 	{
-		tmp_data = ($1 > $3) ? $1 : $3;
-		Print_Blank(tmp_data);
+		tmp_blank = ($1 > $3) ? $1 : $3;
+		Print_Blank(tmp_blank);
 		printf("when_body <- when_id ARROW when_id when_body\n");
-		$$ = tmp_data + 1;
+		$$ = tmp_blank + 1;
 	}
     |	   ELSE ARROW when_id
 	{
@@ -619,11 +864,11 @@ when_body: when_id ARROW when_id when_body
 	}
     |	  when_condition ARROW when_id when_body
 	{
-		tmp_data = ($1 > $3) ? $1 : $3;
-		tmp_data = (tmp_data> $4) ? tmp_data : $4;
-		Print_Blank(tmp_data);
+		tmp_blank = ($1 > $3) ? $1 : $3;
+		tmp_blank = (tmp_blank> $4) ? tmp_blank : $4;
+		Print_Blank(tmp_blank);
 		printf("when_body <- when_condition ARROW cal_sent when_body\n");
-		$$ = tmp_data + 1;
+		$$ = tmp_blank + 1;
 	}
     |	   epsilone	
 	{
@@ -658,18 +903,18 @@ when_condition:	IS type
 		}
 	|	when_id IN cal_sent range
 		{
-			tmp_data = ($1 > $3) ? $1 : $3;
-			tmp_data = (tmp_data > $4) ? tmp_data : $4;
-			Print_Blank(tmp_data);
+			tmp_blank = ($1 > $3) ? $1 : $3;
+			tmp_blank = (tmp_blank > $4) ? tmp_blank : $4;
+			Print_Blank(tmp_blank);
 			printf("when_condition <- when_id IN range\n");
-			$$ = tmp_data + 1;
+			$$ = tmp_blank + 1;
 		}
 	|	when_id NOT IN cal_sent range
 		{
-			tmp_data = ($1 > $4) ? $1 : $4;
-			Print_Blank(tmp_data);
+			tmp_blank = ($1 > $4) ? $1 : $4;
+			Print_Blank(tmp_blank);
 			printf("when_condition <- when_id NOT IN cal_sent range\n");
-			$$ = tmp_data + 1;
+			$$ = tmp_blank + 1;
 		}
 	;
 when_stt:  WHEN OPEN ID CLOSE M_OPEN when_body M_CLOSE	
@@ -700,39 +945,39 @@ if_stt:	IF noelse
     ;
 noelse:	OPEN condition CLOSE cf
       	{
-		tmp_data = ($2 > $4) ? $2 : $4;
-		Print_Blank(tmp_data);
+		tmp_blank = ($2 > $4) ? $2 : $4;
+		Print_Blank(tmp_blank);
 		printf("noelse <- OPEN condition CLOSE cf\n");
 		/*if($2)
 		{
 			$$ = $4;
 		}*/
-		$$ = tmp_data + 1;	
+		$$ = tmp_blank + 1;	
 	}
     ;
 withelse: OPEN condition CLOSE cf
 	{
-		tmp_data = ($2 > $4) ? $2 : $4;
-		Print_Blank(tmp_data);
+		tmp_blank = ($2 > $4) ? $2 : $4;
+		Print_Blank(tmp_blank);
 		printf("withelse <- OPEN condition CLOSE cf\n");
-		$$ = tmp_data + 1;
+		$$ = tmp_blank + 1;
 	}
     |	  OPEN condition CLOSE cf else_part
 	{
-		tmp_data = ($2 > $4) ? $2 : $4;
-		tmp_data = (tmp_data > $5) ? tmp_data : $5; 
-		Print_Blank(tmp_data);
+		tmp_blank = ($2 > $4) ? $2 : $4;
+		tmp_blank = (tmp_blank > $5) ? tmp_blank : $5; 
+		Print_Blank(tmp_blank);
 		printf("OPEN condition CLOSE cf else_part\n");
-		$$ = tmp_data + 1; 
+		$$ = tmp_blank + 1; 
 	}
     ;
 else_part: ELSEIF OPEN condition CLOSE cf else_part
 	 {
-		tmp_data = ($3 > $5) ? $3 : $5;
-		tmp_data = (tmp_data > $6) ? tmp_data : $6;
-		Print_Blank(tmp_data);
+		tmp_blank = ($3 > $5) ? $3 : $5;
+		tmp_blank = (tmp_blank > $6) ? tmp_blank : $6;
+		Print_Blank(tmp_blank);
 		printf("else_part <- ELSEIF OPEN condition CLOSE cf else_part\n");
-		$$ = tmp_data + 1;
+		$$ = tmp_blank + 1;
 	 }
     |	   ELSE cf
 	 {
@@ -760,10 +1005,10 @@ cf:	 M_OPEN cf_body M_CLOSE
 	 
 cf_body: eval RETURN cal_sent	
        	{
-		tmp_data = ($1 > $3) ? $1 : $3;
-		Print_Blank(tmp_data);
+		tmp_blank = ($1 > $3) ? $1 : $3;
+		Print_Blank(tmp_blank);
 		printf("cf_body <- eval RETURN cal_sent\n");
-		$$ = tmp_data + 1;
+		$$ = tmp_blank + 1;
 	}
     |	eval RETURN	
        	{
@@ -801,91 +1046,91 @@ condition  :	is_condition
 		}
 	|	condition SAME condition	
 		{	
-			tmp_data = ($1 > $3) ? $1 : $3;	
-			Print_Blank(tmp_data);
+			tmp_blank = ($1 > $3) ? $1 : $3;	
+			Print_Blank(tmp_blank);
 			printf("condition <- condition SAME condition\n");
 			/*if($1 == $3)
 				$$ = 1;
 			else
 				$$ = 0;*/
-			$$ = tmp_data + 1;
+			$$ = tmp_blank + 1;
 		}
 	|	condition GREATER condition
 		{
-			tmp_data = ($1 > $3) ? $1 : $3;
-			Print_Blank(tmp_data);
+			tmp_blank = ($1 > $3) ? $1 : $3;
+			Print_Blank(tmp_blank);
 			printf("condition <- condition GREATER condition\n");
 			/*if($1 < $3)
 				$$ = 1;
 			else
 				$$ = 0;*/
-			$$ = tmp_data + 1;
+			$$ = tmp_blank + 1;
 		}
 	|	condition LESS condition
 		{
-			tmp_data = ($1 > $3) ? $1 : $3;
-			Print_Blank(tmp_data);
+			tmp_blank = ($1 > $3) ? $1 : $3;
+			Print_Blank(tmp_blank);
 			printf("condition <- condition LESS condition\n");
 			/*if($1 > $3)
 				$$ = 1;
 			else
 				$$ = 0;*/
-			$$ = tmp_data + 1;
+			$$ = tmp_blank + 1;
 		}
 	|	condition E_GREATER condition
 		{
-			tmp_data = ($1 > $3) ? $1 : $3;
-			Print_Blank(tmp_data);
+			tmp_blank = ($1 > $3) ? $1 : $3;
+			Print_Blank(tmp_blank);
 			printf("condition <- condition E_GREATER condition\n");
 			/*if($1 <= $3)
 				$$ = 1;
 			else
 				$$ = 0;*/
-			$$ = tmp_data + 1;
+			$$ = tmp_blank + 1;
 		}
 	|	condition E_LESS condition
 		{
-			tmp_data = ($1 > $3) ? $1 : $3;
-			Print_Blank(tmp_data);
+			tmp_blank = ($1 > $3) ? $1 : $3;
+			Print_Blank(tmp_blank);
 			printf("condition <- condition E_LESS condition\n");
 			/*if($1 >= $3)
 				$$ = 1;
 			else
 				$$ = 0;*/
-			$$ = tmp_data + 1;	
+			$$ = tmp_blank + 1;	
 		}
 	|	condition AND condition
 		{
-			tmp_data = ($1 > $3) ? $1 : $3;	
-			Print_Blank(tmp_data);
+			tmp_blank = ($1 > $3) ? $1 : $3;	
+			Print_Blank(tmp_blank);
 			printf("condition <- condition AND condition\n");
 			/*if($1 && $3)
 				$$ = 1;
 			else
 				$$ = 0;*/
-			$$ = tmp_data + 1;
+			$$ = tmp_blank + 1;
 		}
 	|	condition OR condition
 		{
-			tmp_data = ($1 > $3) ? $1 : $3;
-			Print_Blank(tmp_data);
+			tmp_blank = ($1 > $3) ? $1 : $3;
+			Print_Blank(tmp_blank);
 			printf("condition <- condition OR condition\n");
 			/*if($1 || $3)
 				$$ = 1;
 			else
 				$$ = 0;*/
-			$$ = tmp_data + 1;
+			$$ = tmp_blank + 1;
 		}
 	|	condition NOT_SAME condition
 		{
-			tmp_data = ($1 > $3) ? $1 : $3;
-			Print_Blank(tmp_data);
+			tmp_blank = ($1 > $3) ? $1 : $3;
+			Print_Blank(tmp_blank);
 			printf("condition <- condition NOT_SAME condition\n");
 			/*if($1 != $3)
 				$$ = 1;
 			else
 				$$ = 0;*/
-			$$ = tmp_data + 1;
+			$$ = tmp_blank + 1;
 		}
 	|	cal_sent	
 		{ 
@@ -895,25 +1140,25 @@ condition  :	is_condition
 		}
 	|	signed_factor IN cal_sent range	
 		{
-			tmp_data = ($1 > $3) ? $1 : $3;
-			tmp_data = (tmp_data > $4) ? tmp_data : $4;
-			Print_Blank(tmp_data);
+			tmp_blank = ($1 > $3) ? $1 : $3;
+			tmp_blank = (tmp_blank > $4) ? tmp_blank : $4;
+			Print_Blank(tmp_blank);
 			printf("condition <- factor IN cal_sent range\n");
-			$$ = tmp_data + 1;
+			$$ = tmp_blank + 1;
 		}
 	|	signed_factor NOT IN cal_sent range	
 		{
-			tmp_data = ($1 > $4) ? $1 : $4;
-			tmp_data = (tmp_data > $5) ? tmp_data : $5;
-			Print_Blank(tmp_data);
+			tmp_blank = ($1 > $4) ? $1 : $4;
+			tmp_blank = (tmp_blank > $5) ? tmp_blank : $5;
+			Print_Blank(tmp_blank);
 			printf("condition <- factor NOT IN cal_sent range\n");
-			$$ = tmp_data + 1;
+			$$ = tmp_blank + 1;
 		}
 	;
 is_condition :	ID IS type	
 	     	{ 
-			Print_Blank($3);
 			printf("is_condition <- ID IS type\n");
+			Print_Blank($3);
 			//tmp_idx = Find_var_index($1, var_name);
 			//tmp_data = Check_Type_Saved($1);
 			//if(var_type[tmp_idx] == tmp_data)
@@ -924,8 +1169,8 @@ is_condition :	ID IS type
 	     	}
 	|	ID NOT IS type	
 		{
-			Print_Blank($4);
 			printf("is_condition <- ID NOT IS type\n");
+			Print_Blank($4);
 			//tmp_idx = Find_var_index($1, var_name);
 			//tmp_data = Check_Type_Saved($1);
 			//if(var_type[tmp_idx] != tmp_data)
@@ -937,17 +1182,17 @@ is_condition :	ID IS type
 	;
 range	:	DOT cal_sent step_count 
       		{
-			tmp_data = ($2 > $3) ? $2 : $3;
-			Print_Blank(tmp_data);
 			printf("range <- DOUBLEDOT cal_sent step_count\n");
-			$$ = tmp_data + 1;
+			tmp_blank = ($2 > $3) ? $2 : $3;
+			Print_Blank(tmp_blank);
+			$$ = tmp_blank + 1;
       		}
 	|	DOWNTO cal_sent step_count 
 		{
-			tmp_data = ($2 > $3) ? $2 : $3;
-			Print_Blank(tmp_data);
 			printf("range <- DOWNTO cal_sent step_count\n");
-			$$ = tmp_data + 1;
+			tmp_blank = ($2 > $3) ? $2 : $3;
+			Print_Blank(tmp_blank);
+			$$ = tmp_blank + 1;
 		}
 	|	epsilone
 		{
@@ -956,8 +1201,8 @@ range	:	DOT cal_sent step_count
 	;
 step_count:	STEP factor
 	  	{ 
-			Print_Blank($2);
 			printf("step_count <- STEP factor\n");
+			Print_Blank($2);
 			$$ = $2 + 1;
 	  	}
 	|	epsilone
@@ -967,23 +1212,37 @@ step_count:	STEP factor
 	;
 withelse:	ELSEIF expr withelse	
 		{
-			tmp_data = ($2 > $3) ? $2 : $3;	
-			Print_Blank(tmp_data);
 			printf("withelse <- ELSEIF expr withelse\n");
-			$$ = tmp_data + 1;
+			tmp_blank = ($2 > $3) ? $2 : $3;	
+			Print_Blank(tmp_blank);
+			$$ = tmp_blank + 1;
 		}
 	|	ELSE expr		
 		{
-			Print_Blank($2);
 			printf("withelse <- ELSE expr\n");
+			Print_Blank($2);
 			$$ = $2 + 1;
 		}
 	;
-val_decl:	ID EQUAL decl_content COMMA val_decl 
+id_decl:	ID 
+       		{
+			printf("id_decl <- ID\n");
+			Print_Blank(0);
+			$$ = 1;
+		}
+	|	ID COLUMN type
 		{
-			tmp_data = ($3 > $5) ? $3 : $5;
-			Print_Blank(tmp_data);
-			printf("val_decl <- ID EQUAL decl_content COMMA val_decl\n");
+			printf("id_decl <- ID COLUMN type\n");
+			Print_Blank($3);
+			$$ = $3;
+		}
+	;
+id_decl_stt:	id_decl EQUAL decl_content COMMA id_decl_stt 
+		{
+			printf("id_decl_stt <- id_decl EQUAL decl_content COMMA id_decl_stt\n");
+			tmp_blank = ($3 > $5) ? $3 : $5;
+			tmp_blank = (tmp_blank > $1) ? tmp_blank : $1;
+			Print_Blank(tmp_blank);
 			//tmp_data = Check_Type_Not_Saved($3);
 			//tmp_idx = Var_Save($1, $3, tmp_data, var_name, data, var_type);
 			//if(tmp_idx == -1)
@@ -991,147 +1250,60 @@ val_decl:	ID EQUAL decl_content COMMA val_decl
 			//if(tmp_idx == var_idx + 1)
 			//	var_idx = tmp_idx;
 			//else
-			//	printf("Error : Hole in array!\n\n");
-			$$ = tmp_data + 1;
+			//	  = "Error : Hole in array!\n;
+			$$ = tmp_blank + 1;
 		}
- 	|	ID	
+ 	|	id_decl	
 		{
-			Print_Blank(0);
-			printf("val_decl <- ID\n");
+			printf("id_decl_stt <- id_decl\n");
+			Print_Blank($1);
 			//var_type[var_idx] = 0;
 			//var_name[var_idx] = $1;
 			//data[var_idx] = -1;
 			//var_idx++;
-			$$ = 1;
+			$$ = $1 + 1;
 		}
-	|	ID EQUAL decl_content	
+ 	|	id_decl COMMA id_decl_stt	
 		{
-			Print_Blank($3);
-			printf("val_decl <- ID EQUAL decl_content\n");
+			printf("id_decl_stt <- id_decl\n");
+			Print_Blank($1);
+			//var_type[var_idx] = 0;
+			//var_name[var_idx] = $1;
+			//data[var_idx] = -1;
+			//var_idx++;
+			$$ = $1 + 1;
+		}
+	|	id_decl EQUAL decl_content	
+		{
+			printf("id_decl_stt <- id_decl EQUAL decl_content\n");
+			tmp_blank = ($1 > $3) ? $1 : $3;
+			Print_Blank(tmp_blank);
 			//tmp_data = Check_Type_Not_Saved($3);
 			//var_type[var_idx] = tmp_data;
 			//var_name[var_idx] = $1;
 			//data[var_idx] = $3;
 			//var_idx++;
-			$$ = $3 + 1;	
-		}
-	|	ID COLUMN type EQUAL decl_content COMMA val_decl 
-		{
-			tmp_data = ($3 > $5) ? $3 : $5;
-			tmp_data = (tmp_data > $7) ? tmp_data : $7;
-			Print_Blank(tmp_data);
-			printf("val_decl <- ID COLUMN type EQUAL decl_content COMMA val_decl\n");
-			//var_type[var_idx] = $3;
-			//var_name[var_idx] = $1;
-			//data[var_idx] = $5;
-			//var_idx++;
-			$$ = tmp_data + 1;
-		}
-	|	ID COLUMN type	
-		{
-			Print_Blank($3);
-			printf("val_decl <- ID COLUMN type\n");
-			//var_type[var_idx] = $3;
-			//var_name[var_idx] = $1;
-			//data[var_idx] = -1;
-			//var_idx++;
-			$$ = $3 + 1;
-		}
-	|	ID COLUMN type EQUAL decl_content 
-		{
-			tmp_data = ($3 > $5) ? $3 : $5;
-			Print_Blank(tmp_data);
-			printf("val_decl <- ID COLUMN type EQUAL decl_content\n");
-			//var_type[var_idx] = $3;
-			//var_name[var_idx] = $1;
-			//data[var_idx] = $5;
-			//var_idx++;
-			$$ = tmp_data + 1;	
-		}
-	;
-var_decl:	ID EQUAL decl_content COMMA var_decl 
-		{
-			tmp_data = ($3 > $5) ? $3 : $5;
-			Print_Blank(tmp_data);
-			printf("var_decl <- ID EQUAL decl_content COMA var_decl\n");
-			//var_type[var_idx] = 10;
-			//var_name[var_idx] = $1;
-			//data[var_idx] = $3;
-			//var_idx++;
-			$$ = tmp_data + 1;	
-		}
- 	|	ID	
-		{
-			Print_Blank(0);
-			printf("var_decl <- ID\n");
-			//var_type[var_idx] = 10;
-			//var_name[var_idx] = $1;
-			//data[var_idx] = -1;
-			//var_idx++;gc	
-			$$ = 1;	
-		}
-	|	ID EQUAL decl_content	
-		{
-			Print_Blank($3);
-			printf("var_decl <- ID EQUAL decl_content\n");
-			//var_type[var_idx] = 10;
-			//var_name[var_idx] = $1;
-			//data[var_idx] = $3;
-			//var_idx++;
-			$$ = $3 + 1;	
-		}
-	|	ID COLUMN type EQUAL decl_content COMMA var_decl 
-		{
-			tmp_data = ($3 > $5) ? $3 : $5;
-			tmp_data = (tmp_data > $7) ? tmp_data : $7;
-			Print_Blank(tmp_data);
-			printf("var_decl <- ID COLUMN type EQUAL decl_content COMMA var_decl\n");
-			//var_type[var_idx] = $3 + 10;
-			//var_name[var_idx] = $1;
-			//data[var_idx] = $5;
-			//var_idx++;
-			$$ = tmp_data + 1;	
-		}
-	|	ID COLUMN type	
-		{
-			Print_Blank($3);
-			printf("var_decl <- ID COLUMN type\n");
-			//var_type[var_idx] = $3 + 10;
-			//var_name[var_idx] = $1;
-			//data[var_idx] = -1;
-			//var_idx++;
-			$$ = $3 + 1;	
-		}
-	|	ID COLUMN type EQUAL decl_content 
-		{
-			tmp_data = ($3 > $5) ? $3 : $5;
-			Print_Blank(tmp_data);
-			printf("var_decl <- ID COLUMN type EQUAL decl_content\n");
-			//var_type[var_idx] = $3 + 10;
-			//var_name[var_idx] = $1;
-			//data[var_idx] = $5;
-			//var_idx++;
-			$$ = tmp_data + 1;	
+			$$ = tmp_blank + 1;	
 		}
 	;
 decl_content:	cal_sent	
 	    	{
-			Print_Blank($1);
 			printf("decl_content <- cal_sent\n");
+			Print_Blank($1);
 			$$ = $1 + 1;
 		}
-	|	LIST OPEN list_content CLOSE	
+	|	LISTOF OPEN list_content CLOSE	
 		{
+			printf("decl_content <- LISTOF OPEN list_content CLOSE\n");
 			Print_Blank($3);
-			printf("decl_content <- LIST OPEN list_content CLOSE\n");
 			//double * tmp = (double*) &($3);
 			//$$ = *tmp;
 			$$ = $3 + 1;	
 		}
 	|	STR
 		{
-			Print_Blank(0);
 			printf("decl_content <- STR\n");
+			Print_Blank(0);
 			//tmp_idx = Find_var_index($1, var_name);
 			//$$ = data[tmp_idx];
 			$$ = 1;	
@@ -1139,16 +1311,16 @@ decl_content:	cal_sent
 	;
 list_content:	STR COMMA list_content
 	    	{
-			Print_Blank($3);
 			printf("list_content <- STR COMMA list_content\n");
+			Print_Blank($3);
 			//*($3 + tmp_idx) = $1;
 			//tmp_idx++;
 			$$ = $3 + 1;
 	    	}
 	|	STR
 		{
-			Print_Blank(0);
 			printf("list_content <- STR\n");
+			Print_Blank(0);
 			//char** tmp_str = (char**)calloc(100, sizeof(char*));
 			//tmp_idx = 0;
 			//tmp_str[tmp_idx] = $1;
@@ -1156,21 +1328,41 @@ list_content:	STR COMMA list_content
 			//tmp_idx++;
 			$$ = 1;	
 		}
+	|	cal_sent COMMA list_content
+	    	{
+			printf("list_content <- cal_sent COMMA list_content\n");
+			tmp_blank = ($1 > $3) ? $1 : $3;
+			Print_Blank(tmp_blank);
+			//*($3 + tmp_idx) = $1;
+			//tmp_idx++;
+			$$ = tmp_blank + 1;
+	    	}
+	|	cal_sent
+		{
+			printf("list_content <- cal_sent\n");
+			Print_Blank($1);
+			//char** tmp_str = (char**)calloc(100, sizeof(char*));
+			//tmp_idx = 0;
+			//tmp_str[tmp_idx] = $1;
+			//$$ = tmp_str;
+			//tmp_idx++;
+			$$ = $1 + 1;	
+		}
 	;
 fun_call:	ID OPEN argument CLOSE
 		{
-			Print_Blank($3);
 			printf("fun_call <- ID OPEN argument CLOSE\n");
+			Print_Blank($3);
 			printf("%s\n", $1);
 			$$ = $3 + 1;
 		}
 	;
 argument:	cal_sent mul_argument
 		{
-			tmp_data = ($1 > $2) ? $1 : $2;
-			Print_Blank(tmp_data);
+			tmp_blank = ($1 > $2) ? $1 : $2;
+			Print_Blank(tmp_blank);
 			printf("argument <- calc_sent mul_argument\n");
-			$$ = tmp_data;
+			$$ = tmp_blank;
 		}
 	|	STR mul_argument
 		{
@@ -1180,10 +1372,10 @@ argument:	cal_sent mul_argument
 		}
 	|	fun_call mul_argument
 		{
-			tmp_data = ($1 > $2) ? $1 : $2;
-			Print_Blank(tmp_data);
-			printf("argument <- fun_call mul_argument\n");
-			$$ = tmp_data + 1;
+			tmp_blank = ($1 > $2) ? $1 : $2;
+			Print_Blank(tmp_blank);
+			printf("argument <- fun_call mul_argument");
+			$$ = tmp_blank + 1;
 		}
 	|	epsilone
 		{
@@ -1207,9 +1399,11 @@ epsilone: /*empty*/	{} ;
 
 
 /* User code */
+extern int line_num;
+
 int yyerror(const char *s)
 {
-	return printf("Error : %s\n", s);
+	return printf("Line : %d is error with %s\n", line_num, s);
 }
 
 int Check_Type_Saved(char * name)

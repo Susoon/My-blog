@@ -5,13 +5,17 @@
 #include "stod.h"
 #include "kotlin.tab.h"
 
+int line_num = 1;
+
 extern int yyerror(const char*);
 %}
 
+L_NUMBER ([0-9])+([.])?([0-9])*[L]
 NUMBER 	([0-9])+([.])?([0-9])*
 STR 	["]([a-zA-Z0-9_ \t\r\$.,;&!?\(\)\{\}\[\]\+\-\*'=><\:\/\n\:])*["]
 FILE_SEP ([a-zA-Z][.])+[a-zA-Z]
-SPACE	[ \r\t\n]+
+SPACE	[ \r\t]+
+EOL	[\n]
 PACK	package
 FUNC	fun
 VAL	val
@@ -29,21 +33,31 @@ IS	is
 IN	in
 DOWNTO	downTo
 STEP	step
-LIST	listOf
+LISTOF	listOf
+LIST	List
 INT	(I|i)nt
 LONG	(L|l)ong
 FLOAT	(F|f)loat
 DOUBLE	(D|d)ouble
 STRING	(S|s)tring
 CHAR	(C|c)har
+BOOL	(B|b)oolean
 ANY	(A|a)ny
 UNIT	(U|u)nit
 MAIN	main
+ABST 	abstract
+CLASS	class
+INTER	interface
+OVER	override
 ID [a-zA-Z_][a-zA-Z_0-9]*
 COMMENT		[/][/]([a-zA-Z0-9_ \t\r\$.,;&!?\(\)\{\}\+\-\/\*\"'=><\:])*
 COMMENT_LONG	[/][*]([a-zA-Z0-9_ \t\r\$.,;&!?\(\)\{\}\+\-\*\"'=><\:\/\n\:])*[*][/]
 
 %%
+
+{L_NUMBER} { yylval.l_var = stod(yytext);
+	return L_NUMBER;
+}
 
 {NUMBER} { yylval.d_var = stod(yytext);
 	return NUMBER;
@@ -57,7 +71,10 @@ COMMENT_LONG	[/][*]([a-zA-Z0-9_ \t\r\$.,;&!?\(\)\{\}\+\-\*\"'=><\:\/\n\:])*[*][/
 		return FILE_SEP;
 }
 
-{SPACE} { /* ignore */ 
+{SPACE} { /*empty*/
+}
+
+{EOL}	{ line_num++;
 }
 
 {PACK}	{ return PACK;
@@ -111,6 +128,9 @@ COMMENT_LONG	[/][*]([a-zA-Z0-9_ \t\r\$.,;&!?\(\)\{\}\+\-\*\"'=><\:\/\n\:])*[*][/
 {STEP}	{ return STEP;
 }
 
+{LISTOF} { return LISTOF;
+}
+
 {LIST}	{ return LIST;
 }
 
@@ -132,6 +152,9 @@ COMMENT_LONG	[/][*]([a-zA-Z0-9_ \t\r\$.,;&!?\(\)\{\}\+\-\*\"'=><\:\/\n\:])*[*][/
 {CHAR}	{ return CHAR;
 }
 
+{BOOL}	{ return BOOL;
+}
+
 {ANY}	{ return ANY;
 }
 
@@ -139,6 +162,18 @@ COMMENT_LONG	[/][*]([a-zA-Z0-9_ \t\r\$.,;&!?\(\)\{\}\+\-\*\"'=><\:\/\n\:])*[*][/
 }
 
 {MAIN}	{ return MAIN;
+}
+
+{ABST}	{ return ABST;
+}
+
+{CLASS}	{ return CLASS;
+}
+
+{INTER}	{ return INTER;
+}
+
+{OVER}	{ return OVER;
 }
 
 {ID} { yylval.s_var = yytext;	
