@@ -69,28 +69,20 @@
 #include <string.h>
 
 #include "find_data.h"
+#include "parse_tree.h"
 
 extern int yylex(void);
 extern void yyterminate();
 extern int yyerror(const char *s);
 
-char * var_name[1000] = { 0 };
-char * fun_name[1000] = { 0 };
-double data[1000] = { 0 };
-//Type value - 0 : Not_defined 1 : INT, 2 : LONG, 3 : FLOAT, 4 : DOUBLE, 5 : STRING, 6 : CHAR, 7 : BOOL, const : +10
-int var_type[100] = { 0 }; 
-//Type value - 0 : Not_defined 1 : INT, 2 : LONG, 3 : FLOAT, 4 : DOUBLE, 5 : STRING, 6 : CHAR, 7 : BOOL, 8 : UNIT, 9 : ANY, const : +10, question : +20, class_fct : +100
-int fun_type[100] = { 0 };
-char * class_type[1000] = { 0 };
-char * class_name[1000] = { 0 };
-int var_idx = 0, fun_idx = 0, err = 0, tmp_blank, tmp_blank, tmp_idx;
-
 int Check_Type_Saved(char * name);
 int Check_Type_Not_Saved(double value);
-void Print_Blank(double n);
+
+NODE * parent;
+NODE * child;
 
 
-#line 94 "kotlin.tab.c" /* yacc.c:339  */
+#line 86 "kotlin.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -210,10 +202,10 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 29 "kotlin.y" /* yacc.c:355  */
- double d_var; float f_var; int i_var; long l_var; char* s_var; char c_var; char** sp_var
+#line 21 "kotlin.y" /* yacc.c:355  */
+ struct parse_node* node_var; double d_var; float f_var; int i_var; long l_var; char* s_var; char c_var; char** sp_var
 
-#line 217 "kotlin.tab.c" /* yacc.c:355  */
+#line 209 "kotlin.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -230,7 +222,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 234 "kotlin.tab.c" /* yacc.c:358  */
+#line 226 "kotlin.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -535,24 +527,24 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   149,   149,   155,   161,   167,   174,   184,   190,   201,
-     207,   213,   219,   225,   231,   237,   243,   250,   257,   267,
-     273,   279,   285,   290,   297,   305,   313,   320,   327,   334,
-     340,   346,   351,   357,   364,   371,   378,   384,   391,   399,
-     405,   410,   417,   423,   429,   436,   443,   448,   454,   460,
-     466,   472,   479,   487,   494,   501,   508,   515,   522,   529,
-     535,   541,   548,   554,   560,   568,   576,   584,   592,   600,
-     608,   616,   622,   628,   635,   642,   648,   653,   660,   667,
-     673,   679,   684,   690,   697,   704,   711,   718,   725,   732,
-     739,   746,   753,   761,   770,   777,   784,   789,   796,   802,
-     808,   814,   820,   826,   831,   839,   847,   854,   861,   867,
-     875,   880,   886,   893,   899,   905,   913,   921,   927,   934,
-     940,   947,   959,   966,   975,   983,   989,   994,  1000,  1007,
-    1014,  1020,  1027,  1033,  1040,  1046,  1057,  1068,  1079,  1090,
-    1101,  1112,  1123,  1134,  1140,  1148,  1157,  1169,  1182,  1189,
-    1196,  1201,  1207,  1212,  1219,  1226,  1232,  1239,  1255,  1265,
-    1275,  1288,  1296,  1304,  1311,  1319,  1330,  1339,  1351,  1358,
-    1365,  1371,  1377,  1384,  1389,  1395,  1401
+       0,   142,   142,   150,   159,   168,   176,   184,   191,   200,
+     207,   214,   221,   228,   235,   242,   249,   256,   263,   273,
+     285,   294,   301,   309,   321,   344,   365,   381,   391,   401,
+     409,   417,   425,   433,   442,   450,   458,   465,   473,   481,
+     490,   498,   508,   519,   527,   535,   551,   559,   567,   575,
+     583,   591,   600,   616,   626,   636,   644,   654,   664,   672,
+     681,   690,   698,   706,   714,   722,   733,   745,   755,   765,
+     775,   785,   796,   803,   812,   826,   837,   845,   857,   869,
+     878,   887,   895,   904,   913,   922,   931,   940,   949,   958,
+     968,   976,   985,   995,  1013,  1024,  1033,  1041,  1055,  1068,
+    1079,  1088,  1097,  1106,  1114,  1133,  1152,  1160,  1171,  1182,
+    1193,  1201,  1209,  1217,  1226,  1237,  1248,  1262,  1281,  1295,
+    1304,  1314,  1327,  1339,  1353,  1368,  1377,  1385,  1396,  1404,
+    1414,  1423,  1431,  1439,  1448,  1455,  1465,  1475,  1485,  1495,
+    1505,  1515,  1525,  1535,  1542,  1553,  1567,  1578,  1592,  1602,
+    1612,  1620,  1629,  1637,  1647,  1657,  1665,  1677,  1690,  1697,
+    1707,  1718,  1731,  1739,  1747,  1758,  1767,  1777,  1785,  1799,
+    1807,  1816,  1830,  1838,  1846,  1855,  1865
 };
 #endif
 
@@ -1633,1905 +1625,2378 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 150 "kotlin.y" /* yacc.c:1646  */
+#line 143 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("goal <- start\n");
+		root = (NODE*)malloc(sizeof(NODE));
+		root -> token_name = "goal";
+		Add_Child(root, (yyvsp[0].node_var));
+		Print_Tree(root, 0);
 	}
-#line 1642 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1636 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 156 "kotlin.y" /* yacc.c:1646  */
+#line 151 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("start <- IMPORT start\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+		parent = make_nt_node("start");
+		child = make_token_node("IMPORT");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[0].node_var));
+		
+		(yyval.node_var) = parent;
 	}
-#line 1652 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1649 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 162 "kotlin.y" /* yacc.c:1646  */
+#line 160 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("start <- PACK start\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+		parent = make_nt_node("start");
+		child = make_token_node("PACK");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[0].node_var));
+		
+		(yyval.node_var) = parent;
 	}
 #line 1662 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 168 "kotlin.y" /* yacc.c:1646  */
-    { 
-		Print_Blank((yyvsp[0].d_var));
-		printf("start <- eval\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+#line 169 "kotlin.y" /* yacc.c:1646  */
+    {
+		parent = make_nt_node("start");
+		Add_Child(parent, (yyvsp[0].node_var));
+		
+		(yyval.node_var) = parent; 
 	}
-#line 1672 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1673 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 175 "kotlin.y" /* yacc.c:1646  */
+#line 177 "kotlin.y" /* yacc.c:1646  */
     {
-		if((yyvsp[-1].d_var) > (yyvsp[0].d_var))
-			tmp_blank = (yyvsp[-1].d_var);
-		else
-			tmp_blank = (yyvsp[0].d_var);
-		Print_Blank(tmp_blank);
-		printf("eval <- expr eval\n");
-		(yyval.d_var) = tmp_blank + 1; 
+		parent = make_nt_node("eval");
+		Add_Child(parent, (yyvsp[-1].node_var));
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
     	}
-#line 1686 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1685 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
 #line 185 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("eval <- expr\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+		parent = make_nt_node("eval");
+		Add_Child(parent, (yyvsp[0].node_var));
+		
+		(yyval.node_var) = parent;
 	}
 #line 1696 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 191 "kotlin.y" /* yacc.c:1646  */
+#line 192 "kotlin.y" /* yacc.c:1646  */
     {
-		if((yyvsp[-1].d_var) > (yyvsp[0].d_var))
-			tmp_blank = (yyvsp[-1].d_var);
-		else
-			tmp_blank = (yyvsp[0].d_var);
-		Print_Blank(tmp_blank);
-		printf("expr <- mainfun eval\n");
-		(yyval.d_var) = tmp_blank + 1;
+		parent = make_nt_node("eval");
+		Add_Child(parent, (yyvsp[-1].node_var));
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 1710 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1708 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 202 "kotlin.y" /* yacc.c:1646  */
-    { 
-		Print_Blank((yyvsp[0].d_var));
-		printf("expr <- for_stt\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+#line 201 "kotlin.y" /* yacc.c:1646  */
+    {
+		parent = make_nt_node("expr");
+		Add_Child(parent, (yyvsp[0].node_var));
+		
+		(yyval.node_var) = parent; 
 	}
-#line 1720 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1719 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
 #line 208 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("expr <- while_stt\n");
-		(yyval.d_var) = (yyvsp[0].d_var);
+		parent = make_nt_node("expr");
+		Add_Child(parent, (yyvsp[0].node_var));
+	
+		(yyval.node_var) = parent;
 	}
 #line 1730 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 214 "kotlin.y" /* yacc.c:1646  */
-    { 
-		Print_Blank((yyvsp[0].d_var));
-		printf("expr <- if_stt\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+#line 215 "kotlin.y" /* yacc.c:1646  */
+    {
+		parent = make_nt_node("expr");
+		Add_Child(parent, (yyvsp[0].node_var));
+		
+		(yyval.node_var) = parent;
 	}
-#line 1740 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1741 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 220 "kotlin.y" /* yacc.c:1646  */
-    { 
-		Print_Blank((yyvsp[0].d_var));
-		printf("expr <- when_stt\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+#line 222 "kotlin.y" /* yacc.c:1646  */
+    {
+		parent= make_nt_node("expr");
+		Add_Child(parent, (yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 1750 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1752 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 226 "kotlin.y" /* yacc.c:1646  */
+#line 229 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("expr <- var_decl\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+		parent = make_nt_node("expr");
+		Add_Child(parent, (yyvsp[0].node_var));
+	
+		(yyval.node_var) = parent;
 	}
-#line 1760 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1763 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 232 "kotlin.y" /* yacc.c:1646  */
-    { 
-		Print_Blank((yyvsp[0].d_var));
-		printf("expr <- val_decl\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+#line 236 "kotlin.y" /* yacc.c:1646  */
+    {
+		parent = make_nt_node("expr");
+		Add_Child(parent, (yyvsp[0].node_var));
+		
+		(yyval.node_var) = parent; 
 	}
-#line 1770 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1774 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 238 "kotlin.y" /* yacc.c:1646  */
-    { 
-		Print_Blank((yyvsp[0].d_var));
-		printf("expr <- cal_sent\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+#line 243 "kotlin.y" /* yacc.c:1646  */
+    {
+		parent = make_nt_node("expr");
+		Add_Child(parent, (yyvsp[0].node_var));
+	
+		(yyval.node_var) = parent; 
 	}
-#line 1780 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1785 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 244 "kotlin.y" /* yacc.c:1646  */
+#line 250 "kotlin.y" /* yacc.c:1646  */
     { 
-		Print_Blank((yyvsp[0].d_var) + 1);
-		printf("expr <- fun_stt\n");
-		printf("\n\n");
-		(yyval.d_var) = (yyvsp[0].d_var);
+		parent = make_nt_node("expr");
+		Add_Child(parent, (yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 1791 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1796 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 251 "kotlin.y" /* yacc.c:1646  */
+#line 257 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("expr <- comment\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
-		printf("\n\n");
+		parent = make_nt_node("expr");
+		Add_Child(parent, (yyvsp[0].node_var));
+		
+		(yyval.node_var) = parent;
 	}
-#line 1802 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1807 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 258 "kotlin.y" /* yacc.c:1646  */
+#line 264 "kotlin.y" /* yacc.c:1646  */
     {
-		if((yyvsp[-1].d_var) > (yyvsp[0].d_var))
-			tmp_blank = (yyvsp[-1].d_var);
-		else
-			tmp_blank = (yyvsp[0].d_var);	
-		Print_Blank(tmp_blank);
-		printf("expr <- ID assign cal_sent\n");
-		(yyval.d_var) = tmp_blank + 1;
+		parent = make_nt_node("expr");
+		child = make_token_node((yyvsp[-2].s_var));
+		Add_Child(parent, child);
+		Add_Last((yyvsp[-1].node_var));
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 1816 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1821 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 268 "kotlin.y" /* yacc.c:1646  */
+#line 274 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank(0);
-		printf("expr <- ID EQUAL STR\n");
-		(yyval.d_var) = 1;
+		parent = make_nt_node("expr");
+		child = make_token_node((yyvsp[-2].s_var));
+		Add_Child(parent, child);
+		child = make_token_node("EQUAL");
+		Add_Last(child);
+		child = make_token_node("STR");
+		Add_Last(child);
+
+		(yyval.node_var) = parent;
 	}
-#line 1826 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1837 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 274 "kotlin.y" /* yacc.c:1646  */
+#line 286 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("expr <- ID lambda\n");
-		(yyval.d_var) = (yyvsp[0].d_var);
+		parent = make_nt_node("expr");
+		child = make_token_node((yyvsp[-1].s_var));
+		Add_Child(parent, child);
+		Add_Last((yyvsp[0].node_var));
+
+		parent;
 	}
-#line 1836 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1850 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 280 "kotlin.y" /* yacc.c:1646  */
+#line 295 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("expr <- class_stt\n");
-		(yyval.d_var) = (yyvsp[0].d_var);
+		parent = make_nt_node("expr");
+		Add_Child(parent, (yyvsp[0].node_var));
+		
+		(yyval.node_var) = parent;
 	}
-#line 1846 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1861 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 286 "kotlin.y" /* yacc.c:1646  */
+#line 302 "kotlin.y" /* yacc.c:1646  */
     {
-		/*empty*/
+		parent = make_nt_node("expr");
+		Add_Child(parent, (yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 1854 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1872 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 291 "kotlin.y" /* yacc.c:1646  */
+#line 310 "kotlin.y" /* yacc.c:1646  */
     {
-			Print_Blank((yyvsp[-1].d_var));
-			printf("generic <- GREATER type LESS\n");
-			(yyval.d_var) = (yyvsp[-1].d_var);
+			parent = make_nt_node("generic");
+			child = make_token_node("GREATER");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[-1].node_var));
+			child = make_token_node("LESS");
+			Add_Last(child);
+	
+			(yyval.node_var) = parent;
 		}
-#line 1864 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1887 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 298 "kotlin.y" /* yacc.c:1646  */
+#line 322 "kotlin.y" /* yacc.c:1646  */
     {
-			tmp_blank = ((yyvsp[-5].d_var) > (yyvsp[-3].d_var)) ? (yyvsp[-5].d_var) : (yyvsp[-3].d_var);
-			tmp_blank = (tmp_blank > (yyvsp[-1].d_var)) ? tmp_blank : (yyvsp[-1].d_var);
-			Print_Blank(tmp_blank);
-			printf("class_stt <- ABST CLASS ID OPEN param CLOSE c_inheritance M_OPEN class_decl M_CLOSE\n");
-			(yyval.d_var) = tmp_blank + 1;
+			parent = make_nt_node("class_stt");
+			child = make_token_node("ABST");
+			Add_Child(parent, child);
+			child = make_token_node("CLASS");
+			Add_Last(child);
+			child = make_token_node("ID");
+			Add_Last(child);
+			child = make_token_node("OPEN");
+			Add_Last(child);
+			Add_Last((yyvsp[-5].node_var));
+			child = make_token_node("CLOSE");
+			Add_Last(child);
+			Add_Last((yyvsp[-3].node_var));
+			child = make_token_node("M_OPEN");
+			Add_Last(child);
+			Add_Last((yyvsp[-1].node_var));
+			child = make_token_node("M_CLOSE");
+			Add_Last(child);
+	
+			(yyval.node_var) = parent;
 		}
-#line 1876 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1914 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 306 "kotlin.y" /* yacc.c:1646  */
+#line 345 "kotlin.y" /* yacc.c:1646  */
     {
-			tmp_blank = ((yyvsp[-5].d_var) > (yyvsp[-3].d_var)) ? (yyvsp[-5].d_var) : (yyvsp[-3].d_var);
-			tmp_blank = (tmp_blank > (yyvsp[-1].d_var)) ? tmp_blank : (yyvsp[-1].d_var);
-			Print_Blank(tmp_blank);
-			printf("class_stt <- CLASS ID OPEN param CLOSE c_inheritance M_OPEN class_decl M_CLOSE\n");
-			(yyval.d_var) = tmp_blank + 1;
+			parent = make_nt_node("class_stt");
+			child = make_token_node("CLASS");
+			Add_Child(parent, child);
+			child = make_token_node("ID");
+			Add_Last(child);
+			child = make_token_node("OPEN");
+			Add_Last(child);
+			Add_Last((yyvsp[-5].node_var));
+			child = make_token_node("CLOSE");
+			Add_Last(child);
+			Add_Last((yyvsp[-3].node_var));
+			child = make_token_node("M_OPEN");
+			Add_Last(child);
+			Add_Last((yyvsp[-1].node_var));
+			child = make_token_node("M_CLOSE");
+			Add_Last(child);
+	
+			(yyval.node_var) = parent;
 		}
-#line 1888 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1939 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 314 "kotlin.y" /* yacc.c:1646  */
+#line 366 "kotlin.y" /* yacc.c:1646  */
     {
-			Print_Blank((yyvsp[-1].d_var));
-			printf("class_stt <- INTER ID M_OPEN class_decl M_CLOSE\n");
-			(yyval.d_var) = (yyvsp[-1].d_var) + 1;
+			parent = make_nt_node("class_stt");
+			child = make_token_node("INTER");
+			Add_Child(parent, child);
+			child = make_token_node("ID");
+			Add_Last(child);
+			child = make_token_node("M_OPEN");
+			Add_Last(child);
+			Add_Last((yyvsp[-1].node_var));
+			child = make_token_node("M_CLOSE");
+			Add_Last(child);
+	
+			(yyval.node_var) = parent;
 		}
-#line 1898 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1958 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 321 "kotlin.y" /* yacc.c:1646  */
+#line 382 "kotlin.y" /* yacc.c:1646  */
     {
-			Print_Blank((yyvsp[0].d_var));
-			printf("val_decl <- VAL id_decl_stt\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
+			parent = make_nt_node("val_decl");
+			child = make_token_node("VAL");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
 		}
-#line 1908 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1971 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 328 "kotlin.y" /* yacc.c:1646  */
+#line 392 "kotlin.y" /* yacc.c:1646  */
     {
-			Print_Blank((yyvsp[0].d_var));
-			printf("var_decl <- VAR id_decl_stt\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
+			parent = make_nt_node("var_decl");
+			child = make_token_node("VAR");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
 		}
-#line 1918 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1984 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 335 "kotlin.y" /* yacc.c:1646  */
+#line 402 "kotlin.y" /* yacc.c:1646  */
     {
-			Print_Blank(0);
-			printf("class_keyword <- OVER\n");
-			(yyval.d_var) = 1;
+			parent = make_nt_node("class_keyword");
+			child = make_token_node("OVER");
+			Add_Child(parent, child);
+
+			(yyval.node_var) = parent;
 		}
-#line 1928 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1996 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 341 "kotlin.y" /* yacc.c:1646  */
+#line 410 "kotlin.y" /* yacc.c:1646  */
     {
-			Print_Blank(0);
-			printf("class_keyword <- ABST\n");
-			(yyval.d_var) = 1;
-		}
-#line 1938 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
+			parent = make_nt_node("class_keyword");
+			parent = make_token_node("ABST");
+			Add_Child(parent, child);
 
-  case 31:
-#line 347 "kotlin.y" /* yacc.c:1646  */
-    {
-			/*empty*/
-		}
-#line 1946 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 32:
-#line 352 "kotlin.y" /* yacc.c:1646  */
-    {
-			Print_Blank((yyvsp[0].d_var));
-			printf("class_id_decl <- class_keyword var_decl\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
-		}
-#line 1956 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 33:
-#line 358 "kotlin.y" /* yacc.c:1646  */
-    {
-			Print_Blank((yyvsp[0].d_var));
-			printf("class_id_decl <- class_keyword val_decl\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
-		}
-#line 1966 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 34:
-#line 365 "kotlin.y" /* yacc.c:1646  */
-    {
-			tmp_blank = ((yyvsp[-1].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-1].d_var) : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			printf("class_decl <- class_id_decl class_decl\n");
-			(yyval.d_var) = tmp_blank + 1;
-		}
-#line 1977 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 35:
-#line 372 "kotlin.y" /* yacc.c:1646  */
-    {
-			tmp_blank = ((yyvsp[-1].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-1].d_var) : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			printf("class_decl <- class_method_decl class_decl\n");
-			(yyval.d_var) = tmp_blank + 1;
-		}
-#line 1988 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 36:
-#line 379 "kotlin.y" /* yacc.c:1646  */
-    {
-			Print_Blank((yyvsp[0].d_var));
-			printf("class_decl <- class_id_decl\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
-		}
-#line 1998 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 37:
-#line 385 "kotlin.y" /* yacc.c:1646  */
-    {
-			Print_Blank((yyvsp[0].d_var));
-			printf("class_decl <- class_method_decl\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
+			(yyval.node_var) = parent;
 		}
 #line 2008 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 38:
-#line 392 "kotlin.y" /* yacc.c:1646  */
+  case 31:
+#line 418 "kotlin.y" /* yacc.c:1646  */
     {
-				tmp_blank = ((yyvsp[-1].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-1].d_var) : (yyvsp[0].d_var);
-				Print_Blank(tmp_blank);
-				printf("class_method_decl <- class_keyword fun_stt\n");
-				(yyval.d_var) = tmp_blank + 1;
-			}
+			parent = make_token_node("class_keyword");
+			Add_Child(parent, (yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
 #line 2019 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 39:
-#line 400 "kotlin.y" /* yacc.c:1646  */
+  case 32:
+#line 426 "kotlin.y" /* yacc.c:1646  */
     {
-			Print_Blank((yyvsp[0].d_var));
-			printf("c_inheritance <- COLUMN inheritance\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
+			parent = make_nt_node("class_id_decl");
+			Add_Child(parent, (yyvsp[-1].node_var));
+			Add_Last((yyvsp[0].node_var));
+		
+			(yyval.node_var) = parent;
 		}
-#line 2029 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2031 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 40:
-#line 406 "kotlin.y" /* yacc.c:1646  */
+  case 33:
+#line 434 "kotlin.y" /* yacc.c:1646  */
     {
-			/*empty*/
+			parent = make_nt_node("class_id_decl");
+			Add_Child(parent, (yyvsp[-1].node_var));
+			Add_Last((yyvsp[0].node_var));
+		
+			(yyval.node_var) = parent;
 		}
-#line 2037 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2043 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 41:
-#line 411 "kotlin.y" /* yacc.c:1646  */
+  case 34:
+#line 443 "kotlin.y" /* yacc.c:1646  */
     {
-			tmp_blank = ((yyvsp[0].d_var) > (yyvsp[-2].d_var)) ? (yyvsp[0].d_var) : (yyvsp[-2].d_var);
-			Print_Blank(tmp_blank);
-			printf("inheritance <- fun_call COMMA inheritance\n");
-			(yyval.d_var) = tmp_blank + 1;
+			parent = make_nt_node("class_decl");
+			Add_Child(parent, (yyvsp[-1].node_var));
+			Add_Last((yyvsp[0].node_var));
+		
+			(yyval.node_var) = parent;
 		}
-#line 2048 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2055 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 42:
-#line 418 "kotlin.y" /* yacc.c:1646  */
+  case 35:
+#line 451 "kotlin.y" /* yacc.c:1646  */
     {
-			Print_Blank((yyvsp[0].d_var));
-			printf("inheritance <- ID COMMA inheritance\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
+			parent = make_nt_node("class_decl");
+			Add_Child(parent, (yyvsp[-1].node_var));
+			Add_Last((yyvsp[0].node_var));
+		
+			(yyval.node_var) = parent;
 		}
-#line 2058 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2067 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 43:
-#line 424 "kotlin.y" /* yacc.c:1646  */
+  case 36:
+#line 459 "kotlin.y" /* yacc.c:1646  */
     {
-			Print_Blank(0);
-			printf("inheritance <- ID\n");
-			(yyval.d_var) = 1;
-		}
-#line 2068 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 44:
-#line 430 "kotlin.y" /* yacc.c:1646  */
-    {
-			Print_Blank((yyvsp[0].d_var));
-			printf("inheritance <- fun_call\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
+			parent = make_nt_node("class_decl");
+			Add_Child(parent, (yyvsp[0].node_var));
+		
+			(yyval.node_var) = parent;
 		}
 #line 2078 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 45:
-#line 437 "kotlin.y" /* yacc.c:1646  */
+  case 37:
+#line 466 "kotlin.y" /* yacc.c:1646  */
     {
-		tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-		Print_Blank(tmp_blank);
-		printf("lambda <- DOT ID M_OPEN cal_sent M_CLOSE lambda\n");
-		(yyval.d_var) = tmp_blank;
-	}
+			parent = make_nt_node("class_decl");
+			Add_Child(parent, (yyvsp[0].node_var));
+		
+			(yyval.node_var) = parent;
+		}
 #line 2089 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 46:
-#line 444 "kotlin.y" /* yacc.c:1646  */
+  case 38:
+#line 474 "kotlin.y" /* yacc.c:1646  */
     {
-		/*empty*/
+				parent = make_nt_node("class_method_decl");
+				Add_Child(parent, (yyvsp[-1].node_var));
+			
+				(yyval.node_var) = parent;
+			}
+#line 2100 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 39:
+#line 482 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("c_inheritance");
+			child = make_token_node("COLUMN");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[0].node_var));
+		
+			(yyval.node_var) = parent;
+		}
+#line 2113 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 40:
+#line 491 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("c_inheritance");
+			Add_Child(parent, (yyvsp[0].node_var));
+		
+			(yyval.node_var) = parent;
+		}
+#line 2124 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 41:
+#line 499 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("inheritnace");
+			Add_Child(parent, (yyvsp[-2].node_var));
+			child = make_token_node("COMMA");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 2138 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 42:
+#line 509 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("inheritance");
+			child = make_token_node("ID");
+			Add_Child(parent, child);
+			child = make_token_node("COMMA");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 2153 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 43:
+#line 520 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("inheritance");
+			child = make_token_node("ID");
+			Add_Child(parent, child);
+
+			(yyval.node_var) = parent;
+		}
+#line 2165 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 44:
+#line 528 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("inheritnace");
+			Add_Child(parent, (yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 2176 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 45:
+#line 536 "kotlin.y" /* yacc.c:1646  */
+    {
+		parent = make_nt_node("lambda");
+		child = make_token_node("DOT");
+		Add_Child(parent, child);
+		child = make_token_node("ID");
+		Add_Last(child);
+		child = make_token_node("M_OPEN");
+		Add_Last(child);
+		Add_Last((yyvsp[-2].node_var));
+		child = make_token_node("M_CLOSE");
+		Add_Last(child);
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 2097 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2196 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 46:
+#line 552 "kotlin.y" /* yacc.c:1646  */
+    {
+		parent = make_nt_node("lambda");
+		Add_Child(parent, (yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
+	}
+#line 2207 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 449 "kotlin.y" /* yacc.c:1646  */
+#line 560 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank(0);
-		printf("assign <- EQUAL\n");
-		(yyval.d_var) = 1;
+		parent = make_nt_node("assign");
+		child = make_token_node("EQUAL");
+		Add_Child(parent, child);
+
+		(yyval.node_var) = parent;
 	}
-#line 2107 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2219 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 455 "kotlin.y" /* yacc.c:1646  */
+#line 568 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank(0);
-		printf("assign <- E_PLUS\n");
-		(yyval.d_var) = 1;
+		parent = make_nt_node("assign");
+		child = make_token_node("E_PLUS");
+		Add_Child(parent, child);
+
+		(yyval.node_var) = parent;
 	}
-#line 2117 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2231 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 461 "kotlin.y" /* yacc.c:1646  */
+#line 576 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank(0);
-		printf("assign <- E_MINUS\n");
-		(yyval.d_var) = 1;
+		parent = make_nt_node("assign");
+		child = make_token_node("E_MINUS");
+		Add_Child(parent, child);
+
+		(yyval.node_var) = parent;
 	}
-#line 2127 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2243 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 467 "kotlin.y" /* yacc.c:1646  */
+#line 584 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank(0);
-		printf("assign <- E_MULT\n");
-		(yyval.d_var) = 1;
+		parent = make_nt_node("assign");
+		child = make_token_node("E_MULT");
+		Add_Child(parent, child);
+
+		(yyval.node_var) = parent;
 	}
-#line 2137 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2255 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 473 "kotlin.y" /* yacc.c:1646  */
+#line 592 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank(0);
-		printf("assign <- E_DIV\n");
-		(yyval.d_var) = 1;
+		parent = make_nt_node("assign");
+		child = make_token_node("E_DIV");
+		Add_Child(parent, child);
+
+		(yyval.node_var) = parent;
 	}
-#line 2147 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2267 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 480 "kotlin.y" /* yacc.c:1646  */
+#line 601 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("main_fun <- FUNC MAIN OPEN CLOSE fun_body\n");
-		printf("\n\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+		parent = make_nt_node("main_fun");
+		child = make_token_node("FUNC");
+		Add_Child(parent, child);
+		child = make_token_node("MAIN");
+		Add_Last(child);
+		child = make_token_node("OPEN");
+		Add_Last(child);
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		Add_Last((yyvsp[0].node_var));
+	
+		(yyval.node_var) = parent;
 	}
-#line 2158 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2286 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 488 "kotlin.y" /* yacc.c:1646  */
-    {	
-		tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-		Print_Blank(tmp_blank);
-		printf("cal_sent <- cal_sent PLUS term\n");
-		(yyval.d_var) = tmp_blank + 1;
+#line 617 "kotlin.y" /* yacc.c:1646  */
+    {
+		parent = make_nt_node("cal_sent");
+		Add_Child(parent, (yyvsp[-2].node_var));
+		child = make_token_node("PLUS");
+		Add_Last(child);
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	  }
-#line 2169 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2300 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 495 "kotlin.y" /* yacc.c:1646  */
+#line 627 "kotlin.y" /* yacc.c:1646  */
     {
-		tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-		Print_Blank(tmp_blank);
-		printf("cal_sent <- cal_sent MINUS term\n");
-		(yyval.d_var) = tmp_blank + 1;
+		parent = make_nt_node("cal_sent");
+		Add_Child(parent, (yyvsp[-2].node_var));
+		child = make_token_node("MINUS");
+		Add_Last(child);
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	  }
-#line 2180 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2314 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 502 "kotlin.y" /* yacc.c:1646  */
+#line 637 "kotlin.y" /* yacc.c:1646  */
     { 
-		Print_Blank((yyvsp[0].d_var));
-		printf("cal_sent <- term\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+		parent = make_nt_node("term");
+		Add_Child(parent, (yyvsp[0].node_var));
+	
+		(yyval.node_var) = parent;
 	  }
-#line 2190 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2325 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 56:
-#line 509 "kotlin.y" /* yacc.c:1646  */
+#line 645 "kotlin.y" /* yacc.c:1646  */
     { 
-		tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-		Print_Blank(tmp_blank);
-		printf("term <- term MULT signed_factor\n");
-		(yyval.d_var) = tmp_blank + 1;
+		parent = make_nt_node("term");
+		Add_Child(parent, (yyvsp[-2].node_var));
+		child = make_token_node("MULT");
+		Add_Last(child);
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
     	}
-#line 2201 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2339 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 516 "kotlin.y" /* yacc.c:1646  */
+#line 655 "kotlin.y" /* yacc.c:1646  */
     { 
-		tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-		Print_Blank(tmp_blank);
-		printf("term <- term DIV signed_factor\n");
-		(yyval.d_var) = tmp_blank + 1;
+		parent = make_nt_node("term");
+		Add_Child(parent, (yyvsp[-2].node_var));
+		child = make_token_node("DIV");
+		Add_Last(child);
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 2212 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2353 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 58:
-#line 523 "kotlin.y" /* yacc.c:1646  */
+#line 665 "kotlin.y" /* yacc.c:1646  */
     { 
-		Print_Blank((yyvsp[0].d_var));
-		printf("term <- signed_factor\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+		parent = make_nt_node("term");
+		Add_Child(parent, (yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 2222 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2364 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 59:
-#line 530 "kotlin.y" /* yacc.c:1646  */
+#line 673 "kotlin.y" /* yacc.c:1646  */
     { 
-			Print_Blank((yyvsp[0].d_var));
-			printf("signed_factor <- PLUS factor\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
+			parent = make_nt_node("signed_factor");
+			child = make_token_node("PLUS");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
 	     	}
-#line 2232 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2377 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 60:
-#line 536 "kotlin.y" /* yacc.c:1646  */
+#line 682 "kotlin.y" /* yacc.c:1646  */
     { 
-			Print_Blank((yyvsp[0].d_var));
-			printf("signed_factor <- MINUS factor\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
+			parent = make_nt_node("signed_factor");
+			child = make_token_node("MINUS");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
 		}
-#line 2242 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2390 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 61:
-#line 542 "kotlin.y" /* yacc.c:1646  */
-    { 
-			Print_Blank((yyvsp[0].d_var));
-			printf("signed_factor <- factor\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
+#line 691 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("signed_factor");
+			Add_Child(parent, (yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
 		}
-#line 2252 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2401 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 62:
-#line 549 "kotlin.y" /* yacc.c:1646  */
+#line 699 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank(0);
-		printf("factor <- NUMBER\n");
-		(yyval.d_var) = 1;
+		parent = make_nt_node("factor");
+		child = make_token_node("NUMBER");
+		Add_Child(parent, child);
+		
+		(yyval.node_var) = parent;
         }
-#line 2262 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2413 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 63:
-#line 555 "kotlin.y" /* yacc.c:1646  */
+#line 707 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank(0);
-		printf("factor <- L_NUMBER\n");
-		(yyval.d_var) = 1;
+		parent = make_nt_node("factor");
+		child = make_token_node("L_NUMBER");
+		Add_Child(parent, child);
+
+		(yyval.node_var) = parent;
 	}
-#line 2272 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2425 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 64:
-#line 561 "kotlin.y" /* yacc.c:1646  */
+#line 715 "kotlin.y" /* yacc.c:1646  */
     { 
-		Print_Blank(0);
-		printf("factor <- ID\n");
-		//var_idx = Find_var_index($1, var_name);
-		//$$ = data[var_idx];
-		(yyval.d_var) = 1;
+		parent = make_nt_node("factor");
+		child = make_token_node("ID");
+		Add_Child(parent, child);
+
+		(yyval.node_var) = parent;
 	}
-#line 2284 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 65:
-#line 569 "kotlin.y" /* yacc.c:1646  */
-    { 
-		Print_Blank((yyvsp[0].d_var));
-		printf("factor <- ID DOT fun_call\n");
-		//var_idx = Find_var_index($1, var_name);
-		//$$ = data[var_idx];
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
-	}
-#line 2296 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 66:
-#line 577 "kotlin.y" /* yacc.c:1646  */
-    { 
-		Print_Blank(0);
-		printf("factor <- ID DOT ID\n");
-		//var_idx = Find_var_index($1, var_name);
-		//$$ = data[var_idx];
-		(yyval.d_var) = 1;
-	}
-#line 2308 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 67:
-#line 585 "kotlin.y" /* yacc.c:1646  */
-    { 
-		Print_Blank(0);
-		printf("factor <- ID INC\n");
-		//var_idx = Find_var_index($1, var_name);
-		//$$ = data[var_idx];
-		(yyval.d_var) = 1;
-	}
-#line 2320 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 68:
-#line 593 "kotlin.y" /* yacc.c:1646  */
-    { 
-		Print_Blank(0);
-		printf("factor <- ID DEC\n");
-		//var_idx = Find_var_index($1, var_name);
-		//$$ = data[var_idx];
-		(yyval.d_var) = 1;	
-	}
-#line 2332 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 69:
-#line 601 "kotlin.y" /* yacc.c:1646  */
-    { 
-		Print_Blank(0);
-		printf("factor <- INC ID\n");
-		//var_idx = Find_var_index($1, var_name);
-		//$$ = data[var_idx];
-		(yyval.d_var) = 1;
-	}
-#line 2344 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 70:
-#line 609 "kotlin.y" /* yacc.c:1646  */
-    { 
-		Print_Blank(0);
-		printf("factor <- DEC ID\n");
-		//var_idx = Find_var_index($1, var_name);
-		//$$ = data[var_idx];
-		(yyval.d_var) = 1;
-	}
-#line 2356 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 71:
-#line 617 "kotlin.y" /* yacc.c:1646  */
-    { 
-		Print_Blank((yyvsp[-1].d_var));
-		printf("factor <- OPEN cal_sent CLOSE\n");
-		(yyval.d_var) = (yyvsp[-1].d_var) + 1;
-	}
-#line 2366 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 72:
-#line 623 "kotlin.y" /* yacc.c:1646  */
-    { 
-		Print_Blank((yyvsp[0].d_var));
-		printf("factor <- fun_call\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
-	}
-#line 2376 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 73:
-#line 629 "kotlin.y" /* yacc.c:1646  */
-    { 
-		Print_Blank(0);
-		printf("factor <- NULL\n");
-		(yyval.d_var) = 1;
-	}
-#line 2386 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 74:
-#line 636 "kotlin.y" /* yacc.c:1646  */
-    { 
-		tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var))? (yyvsp[-2].d_var) : (yyvsp[0].d_var); 
-		Print_Blank(tmp_blank);
-		printf("param <- ID COLUMN fun_type COMMA param\n");
-		(yyval.d_var) = tmp_blank + 1;	
-     	}
-#line 2397 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 75:
-#line 643 "kotlin.y" /* yacc.c:1646  */
-    {
-		Print_Blank((yyvsp[0].d_var));
-		printf("param <- ID COLUMN fun_type\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
-	}
-#line 2407 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 76:
-#line 649 "kotlin.y" /* yacc.c:1646  */
-    {
-		/*empty*/
-	}
-#line 2415 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 77:
-#line 654 "kotlin.y" /* yacc.c:1646  */
-    {
-			tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			printf("class_param <- VAR id_decl COMMA class_param\n");
-			(yyval.d_var) = tmp_blank + 1;
-		}
-#line 2426 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 78:
-#line 661 "kotlin.y" /* yacc.c:1646  */
-    {
-			tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			printf("class_param <- VAR id_decl COMMA class_param\n");
-			(yyval.d_var) = tmp_blank + 1;
-		}
 #line 2437 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 79:
-#line 668 "kotlin.y" /* yacc.c:1646  */
-    {
-			Print_Blank((yyvsp[0].d_var));
-			printf("class_param <- VAL id_decl\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
-		}
-#line 2447 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 80:
-#line 674 "kotlin.y" /* yacc.c:1646  */
-    {
-			Print_Blank((yyvsp[0].d_var));
-			printf("class_param <- VAR id_decl\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
-		}
-#line 2457 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 81:
-#line 680 "kotlin.y" /* yacc.c:1646  */
-    {
-			/*empty*/
-		}
-#line 2465 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 82:
-#line 685 "kotlin.y" /* yacc.c:1646  */
-    {
-		Print_Blank(0);
-		printf("type <- INT\n");
-		(yyval.d_var) = 1;
-    	}
-#line 2475 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 83:
-#line 691 "kotlin.y" /* yacc.c:1646  */
-    {
-		Print_Blank(0);
-		printf("type <- LONG\n");
-		//$$ = 2;
-		(yyval.d_var) = 1;
-    	}
-#line 2486 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 84:
-#line 698 "kotlin.y" /* yacc.c:1646  */
+  case 65:
+#line 723 "kotlin.y" /* yacc.c:1646  */
     { 
-		Print_Blank(0);
-		printf("type <- FLOAT\n");
-		//$$ = 3;
-		(yyval.d_var) = 1;
+		parent = make_nt_node("factor");
+		child = make_token_node("ID");
+		Add_Child(parent, child);
+		child = make_token_node("DOT");
+		Add_Last(child);
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 2497 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2452 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 85:
-#line 705 "kotlin.y" /* yacc.c:1646  */
+  case 66:
+#line 734 "kotlin.y" /* yacc.c:1646  */
     { 
-		Print_Blank(0);
-		printf("type <- DOUBLE\n");
-		//$$ = 4;
-		(yyval.d_var) = 1;
+		parent = make_nt_node("factor");
+		child = make_token_node("ID");
+		Add_Child(parent, child);
+		child = make_token_node("DOT");
+		Add_Last(child);
+		child = make_token_node("ID");
+		Add_Last(child);
+
+		(yyval.node_var) = parent;
 	}
-#line 2508 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2468 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 86:
-#line 712 "kotlin.y" /* yacc.c:1646  */
+  case 67:
+#line 746 "kotlin.y" /* yacc.c:1646  */
     { 
-		Print_Blank(0);
-		printf("type <- STRING\n");
-		//$$ = 5;
-		(yyval.d_var) = 1;
+		parent = make_nt_node("factor");
+		child = make_token_node("ID");
+		Add_Child(parent, child);
+		child = make_token_node("INC");
+		Add_Last(child);
+
+		(yyval.node_var) = parent;
 	}
-#line 2519 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2482 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 87:
-#line 719 "kotlin.y" /* yacc.c:1646  */
+  case 68:
+#line 756 "kotlin.y" /* yacc.c:1646  */
     { 
-		Print_Blank(0);
-		printf("type <- CHAR\n");
-		//$$ = 6;
-		(yyval.d_var) = 1;
+		parent = make_nt_node("factor");
+		child = make_token_node("ID");
+		Add_Child(parent, child);
+		child = make_token_node("DEC");
+		Add_Last(child);
+
+		(yyval.node_var) = parent;
 	}
-#line 2530 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2496 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 88:
-#line 726 "kotlin.y" /* yacc.c:1646  */
+  case 69:
+#line 766 "kotlin.y" /* yacc.c:1646  */
+    { 
+		parent = make_nt_node("factor");
+		child = make_token_node("INC");
+		Add_Child(parent, child);
+		child = make_token_node("ID");
+		Add_Last(child);
+
+		(yyval.node_var) = parent;
+	}
+#line 2510 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 70:
+#line 776 "kotlin.y" /* yacc.c:1646  */
+    { 
+		parent = make_nt_node("factor");
+		child = make_token_node("DEC");
+		Add_Child(parent, child);
+		child = make_token_node("ID");
+		Add_Last(child);
+
+		(yyval.node_var) = parent;
+	}
+#line 2524 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 71:
+#line 786 "kotlin.y" /* yacc.c:1646  */
+    { 
+		parent = make_nt_node("factor");
+		child = make_token_node("OPEN");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[-1].node_var));
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+
+		(yyval.node_var) = parent;
+	}
+#line 2539 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 72:
+#line 797 "kotlin.y" /* yacc.c:1646  */
+    { 
+		parent = make_nt_node("factor");
+		Add_Child(parent, (yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
+	}
+#line 2550 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 73:
+#line 804 "kotlin.y" /* yacc.c:1646  */
+    { 
+		parent = make_nt_node("factor");
+		child = make_token_node("NULL");
+		Add_Child(parent, child);
+
+		(yyval.node_var) = parent;
+	}
+#line 2562 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 74:
+#line 813 "kotlin.y" /* yacc.c:1646  */
+    { 
+		parent = make_nt_node("param");
+		child = make_token_node("ID");
+		Add_Child(parent, child);
+		child = make_token_node("COLUMN");
+		Add_Last(child);
+		Add_Last((yyvsp[-2].node_var));
+		child = make_token_node("COMMA");
+		Add_Last(child);
+		Add_Last((yyvsp[0].node_var));
+		
+		(yyval.node_var) = parent;
+     	}
+#line 2580 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 75:
+#line 827 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank(0);
-		printf("type <- BOOL\n");
-		//$$ = 7;
-		(yyval.d_var) = 1;
+		parent = make_nt_node("param");
+		child = make_token_node("ID");
+		Add_Child(parent, child);
+		child = make_token_node("COLUMN");
+		Add_Last(child);
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 2541 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 89:
-#line 733 "kotlin.y" /* yacc.c:1646  */
-    {
-		Print_Blank((yyvsp[0].d_var));
-		printf("type <- LIST generic\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
-	}
-#line 2551 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 90:
-#line 740 "kotlin.y" /* yacc.c:1646  */
-    {
-			Print_Blank((yyvsp[0].d_var));
-			printf("fun_type <- type\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
-		}
-#line 2561 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 91:
-#line 747 "kotlin.y" /* yacc.c:1646  */
-    { 
-			Print_Blank(0);
-			printf("fun_type <- UNIT\n");
-			//$$ = 7;
-			(yyval.d_var) = 1;
-		}
-#line 2572 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 92:
-#line 754 "kotlin.y" /* yacc.c:1646  */
-    { 
-			Print_Blank(0);
-			printf("fun_type <- ANY\n");
-			//$$ = 8;
-			(yyval.d_var) = 1;
-		}
-#line 2583 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 93:
-#line 762 "kotlin.y" /* yacc.c:1646  */
-    {
-		tmp_blank = ((yyvsp[-3].d_var) > (yyvsp[-1].d_var))? (yyvsp[-3].d_var) : (yyvsp[-1].d_var);
-		tmp_blank = (tmp_blank > (yyvsp[0].d_var)) ? tmp_blank : (yyvsp[0].d_var);
-		Print_Blank(tmp_blank);
-		printf("fun_stt <- FUNC ID OPEN param CLOSE ret_type fun_body\n");
-		(yyval.d_var) = tmp_blank + 1;
-      	}
 #line 2595 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 94:
-#line 771 "kotlin.y" /* yacc.c:1646  */
+  case 76:
+#line 838 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[-1].d_var));
-		printf("ret_type <- COLUMN type QUESTION\n");
-		//$$ = $2;
-		(yyval.d_var) = (yyvsp[-1].d_var) + 1;
+		parent = make_nt_node("param");
+		Add_Child(parent, (yyvsp[0].node_var));
+		
+		(yyval.node_var) = parent;
 	}
 #line 2606 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 95:
-#line 778 "kotlin.y" /* yacc.c:1646  */
+  case 77:
+#line 846 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("ret_type <- COLUMN fun_type\n");
-		//$$ = $2 + 20;
-		(yyval.d_var) = (yyvsp[0].d_var);
+			parent = make_nt_node("class_param");
+			child = make_token_node("VAL");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[-2].node_var));
+			child = make_token_node("COMMA");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 2622 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 78:
+#line 858 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("class_param");
+			child = make_token_node("VAR");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[-2].node_var));
+			child = make_token_node("COMMA");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 2638 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 79:
+#line 870 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("class_param");
+			child = make_token_node("VAL");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 2651 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 80:
+#line 879 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("class_param");
+			child = make_token_node("VAR");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 2664 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 81:
+#line 888 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("class_param");
+			Add_Child(parent, (yyvsp[0].node_var));
+			
+			(yyval.node_var) = parent;
+		}
+#line 2675 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 82:
+#line 896 "kotlin.y" /* yacc.c:1646  */
+    {
+		parent = make_nt_node("type");
+		child = make_token_node("INT");
+		child -> type = 1;
+		Add_Child(parent, child);
+		
+		(yyval.node_var) = parent;
+    	}
+#line 2688 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 83:
+#line 905 "kotlin.y" /* yacc.c:1646  */
+    {
+		parent = make_nt_node("type");
+		child = make_token_node("LONG");
+		child -> type = 2;
+		Add_Child(parent, child);
+		
+		(yyval.node_var) = parent;
+    	}
+#line 2701 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 84:
+#line 914 "kotlin.y" /* yacc.c:1646  */
+    { 
+		parent = make_nt_node("type");
+		child = make_token_node("FLOAT");
+		child -> type = 3;
+		Add_Child(parent, child);
+		
+		(yyval.node_var) = parent;
 	}
-#line 2617 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2714 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 85:
+#line 923 "kotlin.y" /* yacc.c:1646  */
+    { 
+		parent = make_nt_node("type");
+		child = make_token_node("DOUBLE");
+		child -> type = 4;
+		Add_Child(parent, child);
+		
+		(yyval.node_var) = parent;
+	}
+#line 2727 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 86:
+#line 932 "kotlin.y" /* yacc.c:1646  */
+    { 
+		parent = make_nt_node("type");
+		child = make_token_node("STRING");
+		child -> type = 5;
+		Add_Child(parent, child);
+		
+		(yyval.node_var) = parent;
+	}
+#line 2740 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 87:
+#line 941 "kotlin.y" /* yacc.c:1646  */
+    { 
+		parent = make_nt_node("type");
+		child = make_token_node("CHAR");
+		child -> type = 6;
+		Add_Child(parent, child);
+		
+		(yyval.node_var) = parent;
+	}
+#line 2753 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 88:
+#line 950 "kotlin.y" /* yacc.c:1646  */
+    {
+		parent = make_nt_node("type");
+		child = make_token_node("BOOL");
+		child -> type = 7;
+		Add_Child(parent, child);
+		
+		(yyval.node_var) = parent;
+	}
+#line 2766 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 89:
+#line 959 "kotlin.y" /* yacc.c:1646  */
+    {
+		parent = make_nt_node("type");
+		child = make_token_node("LIST");
+		child -> type = 30;
+		Add_Child(parent, child);
+		
+		(yyval.node_var) = parent;
+	}
+#line 2779 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 90:
+#line 969 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("fun_type");
+			Add_Child(parent, (yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 2790 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 91:
+#line 977 "kotlin.y" /* yacc.c:1646  */
+    { 
+			parent = make_nt_node("fun_type");
+			child = make_token_node("UNIT");
+			Add_Child(parent, child);
+			child -> type = 8;
+
+			(yyval.node_var) = parent;
+		}
+#line 2803 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 92:
+#line 986 "kotlin.y" /* yacc.c:1646  */
+    { 
+			parent = make_nt_node("fun_type");
+			child = make_token_node("ANY");
+			Add_Child(parent, child);
+			child -> type = 9;
+
+			(yyval.node_var) = parent;
+		}
+#line 2816 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 93:
+#line 996 "kotlin.y" /* yacc.c:1646  */
+    {
+		parent = make_nt_node("fun_stt");
+		child = make_token_node("FUNC");
+		Add_Child(parent, child);
+		child = make_token_node("ID");
+		Add_Last(child);
+		child = make_token_node("OPEN");
+		Add_Last(child);
+		Add_Last((yyvsp[-3].node_var));
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		Add_Last((yyvsp[-1].node_var));
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
+      	}
+#line 2837 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 94:
+#line 1014 "kotlin.y" /* yacc.c:1646  */
+    {
+		parent = make_nt_node("ret_type");
+		child = make_token_node("COLUMN");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[-1].node_var));
+		child = make_token_node("QUESTION");
+		Add_Last(child);
+
+		(yyval.node_var) = parent;
+	}
+#line 2852 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 95:
+#line 1025 "kotlin.y" /* yacc.c:1646  */
+    {
+		parent = make_nt_node("ret_type");
+		child = make_token_node("COLUMN");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
+	}
+#line 2865 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 96:
-#line 785 "kotlin.y" /* yacc.c:1646  */
+#line 1034 "kotlin.y" /* yacc.c:1646  */
     {
-		/*empty*/
+		parent = make_nt_node("ret_type");
+		Add_Child(parent, (yyvsp[0].node_var));
+	
+		(yyval.node_var) = parent;
 	}
-#line 2625 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2876 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 97:
-#line 790 "kotlin.y" /* yacc.c:1646  */
+#line 1042 "kotlin.y" /* yacc.c:1646  */
     {
-		tmp_blank = ((yyvsp[-3].d_var) > (yyvsp[-1].d_var)) ? (yyvsp[-3].d_var) : (yyvsp[-1].d_var);
-		Print_Blank(tmp_blank);
-		printf("fun_body <- M_OPEN eval RETURN cal_sent M_CLOSE\n");
-		(yyval.d_var) = tmp_blank + 1;
+		parent = make_nt_node("fun_body");
+		child = make_token_node("M_OPEN");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[-3].node_var));
+		child = make_token_node("RETURN");
+		Add_Last(child);
+		Add_Last((yyvsp[-1].node_var));
+		child = make_token_node("M_CLOSE");
+		Add_Last(child);
+
+		(yyval.node_var) = parent;
 	}
-#line 2636 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2894 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 98:
-#line 797 "kotlin.y" /* yacc.c:1646  */
+#line 1056 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[-2].d_var));
-		printf("fun_body <- M_OPEN eval RETURN M_CLOSE\n");
-		(yyval.d_var) = (yyvsp[-2].d_var) + 1;
+		parent = make_nt_node("fun_body");
+		child = make_token_node("M_OPEN");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[-2].node_var));
+		child = make_token_node("RETURN");
+		Add_Last(child);
+		child = make_token_node("M_CLOSE");
+		Add_Last(child);
+
+		(yyval.node_var) = parent;
 	}
-#line 2646 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2911 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 99:
-#line 803 "kotlin.y" /* yacc.c:1646  */
+#line 1069 "kotlin.y" /* yacc.c:1646  */
     { 
-		Print_Blank((yyvsp[-1].d_var));
-		printf("fun_body <- M_OPEN eval M_CLOSE\n");
-		(yyval.d_var) = (yyvsp[-1].d_var) + 1;
+		parent = make_nt_node("fun_body");
+		child = make_token_node("M_OPEN");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[-1].node_var));
+		child = make_token_node("M_CLOSE");
+		Add_Last(child);
+
+		(yyval.node_var) = parent;
 	}
-#line 2656 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2926 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 100:
-#line 809 "kotlin.y" /* yacc.c:1646  */
+#line 1080 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("fun_body <- EQUAL cal_sent\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;	
+		parent = make_nt_node("fun_body");
+		child = make_token_node("EQUAL");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[0].node_var));
+	
+		(yyval.node_var) = parent;
 	}
-#line 2666 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2939 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 101:
-#line 815 "kotlin.y" /* yacc.c:1646  */
+#line 1089 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("fun_body <- EQUAL if_stt\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;	
+		parent = make_nt_node("fun_body");
+		child = make_token_node("EQUAL");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[0].node_var));
+	
+		(yyval.node_var) = parent;
 	}
-#line 2676 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2952 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 102:
-#line 821 "kotlin.y" /* yacc.c:1646  */
+#line 1098 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("fun_body <- EQUAL when_stt\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;	
+		parent = make_nt_node("fun_body");
+		child = make_token_node("EQUAL");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[0].node_var));
+	
+		(yyval.node_var) = parent;
 	}
-#line 2686 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2965 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 103:
-#line 827 "kotlin.y" /* yacc.c:1646  */
+#line 1107 "kotlin.y" /* yacc.c:1646  */
     {
-		//empty	
+		parent = make_nt_node("fun_body");
+		Add_Child(parent, (yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 2694 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2976 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 104:
-#line 832 "kotlin.y" /* yacc.c:1646  */
+#line 1115 "kotlin.y" /* yacc.c:1646  */
     {
-		tmp_blank = ((yyvsp[-4].d_var) > (yyvsp[-1].d_var)) ? (yyvsp[-4].d_var) : (yyvsp[-1].d_var);
-		Print_Blank(tmp_blank);
-		printf("while_stt <- WHILE OPEN condition CLOSE M_OPEN loop_body M_CLOSE\n");
-		(yyval.d_var) = tmp_blank + 1;
+		parent = make_nt_node("while_stt");
+		child = make_token_node("WHILE");
+		Add_Child(parent, child);
+		child = make_token_node("OPEN");
+		Add_Last(child);
+		Add_Last((yyvsp[-4].node_var));
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		child = make_token_node("M_OPEN");
+		Add_Last(child);
+		Add_Last((yyvsp[-1].node_var));
+		child = make_token_node("M_CLOSE");
+		Add_Last(child);
+
+		(yyval.node_var) = parent;
 	 }
-#line 2705 "kotlin.tab.c" /* yacc.c:1646  */
+#line 2998 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 105:
-#line 840 "kotlin.y" /* yacc.c:1646  */
+#line 1134 "kotlin.y" /* yacc.c:1646  */
     {
-		tmp_blank = ((yyvsp[-4].d_var) > (yyvsp[-1].d_var)) ? (yyvsp[-4].d_var) : (yyvsp[-1].d_var);
-		Print_Blank(tmp_blank);
-		printf("for_stt <- FOR OPEN condition CLOSE M_OPEN loop_body M_CLOSE\n");
-		(yyval.d_var) = (yyvsp[-4].d_var) + 1;
+		parent = make_nt_node("for_stt");
+		child = make_token_node("FOR");
+		Add_Child(parent, child);
+		child = make_token_node("OPEN");
+		Add_Last(child);
+		Add_Last((yyvsp[-4].node_var));
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		child = make_token_node("M_OPEN");
+		Add_Last(child);
+		Add_Last((yyvsp[-1].node_var));
+		child = make_token_node("M_CLOSE");
+		Add_Last(child);
+
+		(yyval.node_var) = parent;
       	 }
-#line 2716 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3020 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 106:
-#line 848 "kotlin.y" /* yacc.c:1646  */
+#line 1153 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("loop_body <- eval\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+		parent = make_nt_node("loop_body");
+		Add_Child(parent, (yyvsp[0].node_var));
+		
+		(yyval.node_var) = parent;
 	 }
-#line 2726 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3031 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 107:
-#line 855 "kotlin.y" /* yacc.c:1646  */
+#line 1161 "kotlin.y" /* yacc.c:1646  */
     {
-		tmp_blank = ((yyvsp[-3].d_var) > (yyvsp[-1].d_var)) ? (yyvsp[-3].d_var) : (yyvsp[-1].d_var);
-		Print_Blank(tmp_blank);
-		printf("when_body <- when_id ARROW when_id when_body\n");
-		(yyval.d_var) = tmp_blank + 1;
+		parent = make_nt_node("when_body");
+		Add_Child(parent ,(yyvsp[-3].node_var));
+		child = make_token_node("ARROW");
+		Add_Last(child);
+		Add_Last((yyvsp[-1].node_var));
+		Add_Last((yyvsp[0].node_var));
+		
+		(yyval.node_var) = parent;
 	}
-#line 2737 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3046 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 108:
-#line 862 "kotlin.y" /* yacc.c:1646  */
+#line 1172 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("when_body <- ELSE ARROW when_id\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+		parent = make_nt_node("when_body");
+		child = make_token_node("ELSE");
+		Add_Child(parent, child);
+		child = make_token_node("ARROW");
+		Add_Last(child);
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 2747 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3061 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 109:
-#line 868 "kotlin.y" /* yacc.c:1646  */
+#line 1183 "kotlin.y" /* yacc.c:1646  */
     {
-		tmp_blank = ((yyvsp[-3].d_var) > (yyvsp[-1].d_var)) ? (yyvsp[-3].d_var) : (yyvsp[-1].d_var);
-		tmp_blank = (tmp_blank> (yyvsp[0].d_var)) ? tmp_blank : (yyvsp[0].d_var);
-		Print_Blank(tmp_blank);
-		printf("when_body <- when_condition ARROW cal_sent when_body\n");
-		(yyval.d_var) = tmp_blank + 1;
+		parent = make_nt_node("when_body");
+		Add_Child(parent, (yyvsp[-3].node_var));
+		child = make_token_node("ARROW");
+		Add_Last(child);
+		Add_Last((yyvsp[-1].node_var));
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 2759 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3076 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 110:
-#line 876 "kotlin.y" /* yacc.c:1646  */
+#line 1194 "kotlin.y" /* yacc.c:1646  */
     {
-		//empty
+		parent = make_nt_node("when_body");
+		Add_Child(parent, (yyvsp[0].node_var));
+	
+		(yyval.node_var) = parent;
 	}
-#line 2767 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3087 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 111:
-#line 881 "kotlin.y" /* yacc.c:1646  */
+#line 1202 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank(0);
-		printf("when_id <- STR\n");
-		(yyval.d_var) = 1;
+		parent = make_nt_node("when_id");
+		child = make_token_node("STR");
+		Add_Child(parent, child);
+
+		(yyval.node_var) = parent;
 	}
-#line 2777 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3099 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 112:
-#line 887 "kotlin.y" /* yacc.c:1646  */
+#line 1210 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("when_id <- cal_sent\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+		parent = make_nt_node("when_id");
+		Add_Child(parent, (yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 2787 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3110 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 113:
-#line 894 "kotlin.y" /* yacc.c:1646  */
+#line 1218 "kotlin.y" /* yacc.c:1646  */
     {
-			Print_Blank((yyvsp[0].d_var));
-			printf("when_condition <- IS type\n");
-			(yyval.d_var) = (yyvsp[0].d_var);
+			parent = make_nt_node("when_condition");
+			child = make_token_node("IS");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
 		}
-#line 2797 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3123 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 114:
-#line 900 "kotlin.y" /* yacc.c:1646  */
+#line 1227 "kotlin.y" /* yacc.c:1646  */
     {
-			Print_Blank((yyvsp[0].d_var));
-			printf("when_condition <- NOT IS type\n");
-			(yyval.d_var) = (yyvsp[0].d_var);
+			parent = make_nt_node("when_condition");
+			child = make_token_node("NOT");
+			Add_Child(parent, child);
+			child = make_token_node("IS");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
 		}
-#line 2807 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3138 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 115:
-#line 906 "kotlin.y" /* yacc.c:1646  */
+#line 1238 "kotlin.y" /* yacc.c:1646  */
     {
-			tmp_blank = ((yyvsp[-3].d_var) > (yyvsp[-1].d_var)) ? (yyvsp[-3].d_var) : (yyvsp[-1].d_var);
-			tmp_blank = (tmp_blank > (yyvsp[0].d_var)) ? tmp_blank : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			printf("when_condition <- when_id IN range\n");
-			(yyval.d_var) = tmp_blank + 1;
+			parent = make_nt_node("when_condition");
+			Add_Child(parent, (yyvsp[-3].node_var));
+			child = make_token_node("IN");
+			Add_Last(child);
+			Add_Last((yyvsp[-1].node_var));
+			Add_Last((yyvsp[0].node_var));
+		
+			(yyval.node_var) = parent;
 		}
-#line 2819 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3153 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 116:
-#line 914 "kotlin.y" /* yacc.c:1646  */
+#line 1249 "kotlin.y" /* yacc.c:1646  */
     {
-			tmp_blank = ((yyvsp[-4].d_var) > (yyvsp[-1].d_var)) ? (yyvsp[-4].d_var) : (yyvsp[-1].d_var);
-			Print_Blank(tmp_blank);
-			printf("when_condition <- when_id NOT IN cal_sent range\n");
-			(yyval.d_var) = tmp_blank + 1;
+			parent = make_nt_node("when_condition");
+			Add_Child(parent, (yyvsp[-4].node_var));
+			child = make_token_node("NOT");
+			Add_Last(child);
+			child = make_token_node("IN");
+			Add_Last(child);
+			Add_Last((yyvsp[-1].node_var));
+			Add_Last((yyvsp[0].node_var));
+		
+			(yyval.node_var) = parent;
 		}
-#line 2830 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3170 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 117:
-#line 922 "kotlin.y" /* yacc.c:1646  */
+#line 1263 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[-1].d_var));
-		printf("when_stt <- WHEN OPEN ID CLOSE M_OPEN when_body M_CLOSE\n");
-		(yyval.d_var) = (yyvsp[-1].d_var) + 1;
+		parent = make_nt_node("when_stt");
+		child = make_token_node("WHEN");
+		Add_Child(parent, child);
+		child = make_token_node("OPEN");
+		Add_Last(child);
+		child = make_token_node("ID");
+		Add_Last(child);
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		child = make_token_node("M_OPEN");
+		Add_Last(child);
+		Add_Last((yyvsp[-1].node_var));
+		child = make_token_node("M_CLOSE");	
+		Add_Last(child);
+		
+		(yyval.node_var) = parent;
 	}
-#line 2840 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3193 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 118:
-#line 928 "kotlin.y" /* yacc.c:1646  */
+#line 1282 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[-1].d_var));
-		printf("when_stt <- WHEN M_OPEN when_body M_CLOSE\n");
-		(yyval.d_var) = (yyvsp[-1].d_var) + 1;
+		parent = make_nt_node("when_stt");
+		child = make_token_node("WHEN");
+		Add_Child(parent, child);
+		child = make_token_node("M_OPEN");
+		Add_Last(child);
+		Add_Last((yyvsp[-1].node_var));
+		child = make_token_node("M_CLOSE");	
+		Add_Last(child);
+
+		(yyval.node_var) = parent;
 	}
-#line 2850 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3210 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 119:
-#line 935 "kotlin.y" /* yacc.c:1646  */
+#line 1296 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("if_stt <- IF noelse\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+		parent = make_nt_node("if_stt");
+		child = make_token_node("IF");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 2860 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3223 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 120:
-#line 941 "kotlin.y" /* yacc.c:1646  */
+#line 1305 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("if_stt <- IF withelse\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+		parent = make_nt_node("if_stt");
+		child = make_token_node("IF");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 2870 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3236 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 121:
-#line 948 "kotlin.y" /* yacc.c:1646  */
+#line 1315 "kotlin.y" /* yacc.c:1646  */
     {
-		tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-		Print_Blank(tmp_blank);
-		printf("noelse <- OPEN condition CLOSE cf\n");
-		/*if($2)
-		{
-			$$ = $4;
-		}*/
-		(yyval.d_var) = tmp_blank + 1;	
+		parent = make_nt_node("noelse");
+		child = make_token_node("OPEN");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[-2].node_var));
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 2885 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3252 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 122:
-#line 960 "kotlin.y" /* yacc.c:1646  */
+#line 1328 "kotlin.y" /* yacc.c:1646  */
     {
-		tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-		Print_Blank(tmp_blank);
-		printf("withelse <- OPEN condition CLOSE cf\n");
-		(yyval.d_var) = tmp_blank + 1;
+		parent = make_nt_node("withelse");
+		child = make_token_node("OPEN");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[-2].node_var));
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 2896 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3268 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 123:
-#line 967 "kotlin.y" /* yacc.c:1646  */
+#line 1340 "kotlin.y" /* yacc.c:1646  */
     {
-		tmp_blank = ((yyvsp[-3].d_var) > (yyvsp[-1].d_var)) ? (yyvsp[-3].d_var) : (yyvsp[-1].d_var);
-		tmp_blank = (tmp_blank > (yyvsp[0].d_var)) ? tmp_blank : (yyvsp[0].d_var); 
-		Print_Blank(tmp_blank);
-		printf("OPEN condition CLOSE cf else_part\n");
-		(yyval.d_var) = tmp_blank + 1; 
+		parent = make_nt_node("withelse");
+		child = make_token_node("OPEN");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[-3].node_var));
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		Add_Last((yyvsp[-1].node_var));
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	}
-#line 2908 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3285 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 124:
-#line 976 "kotlin.y" /* yacc.c:1646  */
+#line 1354 "kotlin.y" /* yacc.c:1646  */
     {
-		tmp_blank = ((yyvsp[-3].d_var) > (yyvsp[-1].d_var)) ? (yyvsp[-3].d_var) : (yyvsp[-1].d_var);
-		tmp_blank = (tmp_blank > (yyvsp[0].d_var)) ? tmp_blank : (yyvsp[0].d_var);
-		Print_Blank(tmp_blank);
-		printf("else_part <- ELSEIF OPEN condition CLOSE cf else_part\n");
-		(yyval.d_var) = tmp_blank + 1;
+		parent = make_nt_node("else_part");
+		child = make_token_node("ELSEIF");
+		Add_Child(parent, child);
+		child = make_token_node("OPEN");
+		Add_Last(child);
+		Add_Last((yyvsp[-3].node_var));
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		Add_Last((yyvsp[-1].node_var));
+		Add_Last((yyvsp[0].node_var));
+	
+		(yyval.node_var) = parent;
 	 }
-#line 2920 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3304 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 125:
-#line 984 "kotlin.y" /* yacc.c:1646  */
+#line 1369 "kotlin.y" /* yacc.c:1646  */
     {
-		Print_Blank((yyvsp[0].d_var));
-		printf("else_part <- ELSE cf\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
+		parent = make_nt_node("else_part");
+		child = make_token_node("ELSE");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[0].node_var));
+
+		(yyval.node_var) = parent;
 	 }
-#line 2930 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3317 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
   case 126:
-#line 990 "kotlin.y" /* yacc.c:1646  */
+#line 1378 "kotlin.y" /* yacc.c:1646  */
     {
-		//empty
+		parent = make_nt_node("else_part");
+		Add_Child(parent, (yyvsp[0].node_var));
+	
+		(yyval.node_var) = parent;
 	 }
-#line 2938 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 127:
-#line 995 "kotlin.y" /* yacc.c:1646  */
-    {
-		Print_Blank((yyvsp[-1].d_var));
-		printf("cf <- M_OPEN cf_body M_CLOSE\n");
-		(yyval.d_var) = (yyvsp[-1].d_var) + 1;
-	 }
-#line 2948 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 128:
-#line 1001 "kotlin.y" /* yacc.c:1646  */
-    {
-		Print_Blank((yyvsp[0].d_var));
-		printf("cf <- cf_body\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
-	 }
-#line 2958 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 129:
-#line 1008 "kotlin.y" /* yacc.c:1646  */
-    {
-		tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-		Print_Blank(tmp_blank);
-		printf("cf_body <- eval RETURN cal_sent\n");
-		(yyval.d_var) = tmp_blank + 1;
-	}
-#line 2969 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 130:
-#line 1015 "kotlin.y" /* yacc.c:1646  */
-    {
-		Print_Blank((yyvsp[-1].d_var));
-		printf("cf_body <- eval RETURN\n");
-		(yyval.d_var) = (yyvsp[-1].d_var) + 1;
-	}
-#line 2979 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 131:
-#line 1021 "kotlin.y" /* yacc.c:1646  */
-    {
-		Print_Blank((yyvsp[0].d_var));
-		printf("cf_body <- M_OPEN eval M_CLOSE\n");
-		(yyval.d_var) = (yyvsp[0].d_var) + 1;
-	}
-#line 2989 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 132:
-#line 1028 "kotlin.y" /* yacc.c:1646  */
-    { 
-		Print_Blank(0);
-		printf("com <- COMMENT\n");
-		(yyval.d_var) = 1;
-	}
-#line 2999 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 133:
-#line 1034 "kotlin.y" /* yacc.c:1646  */
-    { 
-		Print_Blank(0);
-		printf("com <- COMMENT_LONG\n");
-		(yyval.d_var) = 1;
-	}
-#line 3009 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 134:
-#line 1041 "kotlin.y" /* yacc.c:1646  */
-    { 
-			Print_Blank((yyvsp[0].d_var));
-			printf("condition <- is_condition\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;	
-		}
-#line 3019 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 135:
-#line 1047 "kotlin.y" /* yacc.c:1646  */
-    {	
-			tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);	
-			Print_Blank(tmp_blank);
-			printf("condition <- condition SAME condition\n");
-			/*if($1 == $3)
-				$$ = 1;
-			else
-				$$ = 0;*/
-			(yyval.d_var) = tmp_blank + 1;
-		}
-#line 3034 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 136:
-#line 1058 "kotlin.y" /* yacc.c:1646  */
-    {
-			tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			printf("condition <- condition GREATER condition\n");
-			/*if($1 < $3)
-				$$ = 1;
-			else
-				$$ = 0;*/
-			(yyval.d_var) = tmp_blank + 1;
-		}
-#line 3049 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 137:
-#line 1069 "kotlin.y" /* yacc.c:1646  */
-    {
-			tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			printf("condition <- condition LESS condition\n");
-			/*if($1 > $3)
-				$$ = 1;
-			else
-				$$ = 0;*/
-			(yyval.d_var) = tmp_blank + 1;
-		}
-#line 3064 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 138:
-#line 1080 "kotlin.y" /* yacc.c:1646  */
-    {
-			tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			printf("condition <- condition E_GREATER condition\n");
-			/*if($1 <= $3)
-				$$ = 1;
-			else
-				$$ = 0;*/
-			(yyval.d_var) = tmp_blank + 1;
-		}
-#line 3079 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 139:
-#line 1091 "kotlin.y" /* yacc.c:1646  */
-    {
-			tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			printf("condition <- condition E_LESS condition\n");
-			/*if($1 >= $3)
-				$$ = 1;
-			else
-				$$ = 0;*/
-			(yyval.d_var) = tmp_blank + 1;	
-		}
-#line 3094 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 140:
-#line 1102 "kotlin.y" /* yacc.c:1646  */
-    {
-			tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);	
-			Print_Blank(tmp_blank);
-			printf("condition <- condition AND condition\n");
-			/*if($1 && $3)
-				$$ = 1;
-			else
-				$$ = 0;*/
-			(yyval.d_var) = tmp_blank + 1;
-		}
-#line 3109 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 141:
-#line 1113 "kotlin.y" /* yacc.c:1646  */
-    {
-			tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			printf("condition <- condition OR condition\n");
-			/*if($1 || $3)
-				$$ = 1;
-			else
-				$$ = 0;*/
-			(yyval.d_var) = tmp_blank + 1;
-		}
-#line 3124 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 142:
-#line 1124 "kotlin.y" /* yacc.c:1646  */
-    {
-			tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			printf("condition <- condition NOT_SAME condition\n");
-			/*if($1 != $3)
-				$$ = 1;
-			else
-				$$ = 0;*/
-			(yyval.d_var) = tmp_blank + 1;
-		}
-#line 3139 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 143:
-#line 1135 "kotlin.y" /* yacc.c:1646  */
-    { 
-			Print_Blank((yyvsp[0].d_var));
-			printf("condition <- cal_sent\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
-		}
-#line 3149 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 144:
-#line 1141 "kotlin.y" /* yacc.c:1646  */
-    {
-			tmp_blank = ((yyvsp[-3].d_var) > (yyvsp[-1].d_var)) ? (yyvsp[-3].d_var) : (yyvsp[-1].d_var);
-			tmp_blank = (tmp_blank > (yyvsp[0].d_var)) ? tmp_blank : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			printf("condition <- factor IN cal_sent range\n");
-			(yyval.d_var) = tmp_blank + 1;
-		}
-#line 3161 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 145:
-#line 1149 "kotlin.y" /* yacc.c:1646  */
-    {
-			tmp_blank = ((yyvsp[-4].d_var) > (yyvsp[-1].d_var)) ? (yyvsp[-4].d_var) : (yyvsp[-1].d_var);
-			tmp_blank = (tmp_blank > (yyvsp[0].d_var)) ? tmp_blank : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			printf("condition <- factor NOT IN cal_sent range\n");
-			(yyval.d_var) = tmp_blank + 1;
-		}
-#line 3173 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 146:
-#line 1158 "kotlin.y" /* yacc.c:1646  */
-    { 
-			printf("is_condition <- ID IS type\n");
-			Print_Blank((yyvsp[0].d_var));
-			//tmp_idx = Find_var_index($1, var_name);
-			//tmp_data = Check_Type_Saved($1);
-			//if(var_type[tmp_idx] == tmp_data)
-			//	$$ = 1;
-			//else
-			//	$$ = 0;
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
-	     	}
-#line 3189 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 147:
-#line 1170 "kotlin.y" /* yacc.c:1646  */
-    {
-			printf("is_condition <- ID NOT IS type\n");
-			Print_Blank((yyvsp[0].d_var));
-			//tmp_idx = Find_var_index($1, var_name);
-			//tmp_data = Check_Type_Saved($1);
-			//if(var_type[tmp_idx] != tmp_data)
-			//	$$ = 1;
-			//else
-			//	$$ = 0;
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
-		}
-#line 3205 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 148:
-#line 1183 "kotlin.y" /* yacc.c:1646  */
-    {
-			printf("range <- DOUBLEDOT cal_sent step_count\n");
-			tmp_blank = ((yyvsp[-1].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-1].d_var) : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			(yyval.d_var) = tmp_blank + 1;
-      		}
-#line 3216 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 149:
-#line 1190 "kotlin.y" /* yacc.c:1646  */
-    {
-			printf("range <- DOWNTO cal_sent step_count\n");
-			tmp_blank = ((yyvsp[-1].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-1].d_var) : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			(yyval.d_var) = tmp_blank + 1;
-		}
-#line 3227 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 150:
-#line 1197 "kotlin.y" /* yacc.c:1646  */
-    {
-			/*empty*/
-		}
-#line 3235 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 151:
-#line 1202 "kotlin.y" /* yacc.c:1646  */
-    { 
-			printf("step_count <- STEP factor\n");
-			Print_Blank((yyvsp[0].d_var));
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
-	  	}
-#line 3245 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 152:
-#line 1208 "kotlin.y" /* yacc.c:1646  */
-    {
-			/*empty*/
-		}
-#line 3253 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 153:
-#line 1213 "kotlin.y" /* yacc.c:1646  */
-    {
-			printf("withelse <- ELSEIF expr withelse\n");
-			tmp_blank = ((yyvsp[-1].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-1].d_var) : (yyvsp[0].d_var);	
-			Print_Blank(tmp_blank);
-			(yyval.d_var) = tmp_blank + 1;
-		}
-#line 3264 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 154:
-#line 1220 "kotlin.y" /* yacc.c:1646  */
-    {
-			printf("withelse <- ELSE expr\n");
-			Print_Blank((yyvsp[0].d_var));
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
-		}
-#line 3274 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 155:
-#line 1227 "kotlin.y" /* yacc.c:1646  */
-    {
-			printf("id_decl <- ID\n");
-			Print_Blank(0);
-			(yyval.d_var) = 1;
-		}
-#line 3284 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 156:
-#line 1233 "kotlin.y" /* yacc.c:1646  */
-    {
-			printf("id_decl <- ID COLUMN type\n");
-			Print_Blank((yyvsp[0].d_var));
-			(yyval.d_var) = (yyvsp[0].d_var);
-		}
-#line 3294 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 157:
-#line 1240 "kotlin.y" /* yacc.c:1646  */
-    {
-			printf("id_decl_stt <- id_decl EQUAL decl_content COMMA id_decl_stt\n");
-			tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-			tmp_blank = (tmp_blank > (yyvsp[-4].d_var)) ? tmp_blank : (yyvsp[-4].d_var);
-			Print_Blank(tmp_blank);
-			//tmp_data = Check_Type_Not_Saved($3);
-			//tmp_idx = Var_Save($1, $3, tmp_data, var_name, data, var_type);
-			//if(tmp_idx == -1)
-			//	printf("Error : ID is saved already!\n\n");
-			//if(tmp_idx == var_idx + 1)
-			//	var_idx = tmp_idx;
-			//else
-			//	printf("Error : Hole in array!\n");
-			(yyval.d_var) = tmp_blank + 1;
-		}
-#line 3314 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 158:
-#line 1256 "kotlin.y" /* yacc.c:1646  */
-    {
-			printf("id_decl_stt <- id_decl\n");
-			Print_Blank((yyvsp[0].d_var));
-			//var_type[var_idx] = 0;
-			//var_name[var_idx] = $1;
-			//data[var_idx] = -1;
-			//var_idx++;
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
-		}
 #line 3328 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 159:
-#line 1266 "kotlin.y" /* yacc.c:1646  */
+  case 127:
+#line 1386 "kotlin.y" /* yacc.c:1646  */
     {
-			printf("id_decl_stt <- id_decl\n");
-			Print_Blank((yyvsp[-2].d_var));
-			//var_type[var_idx] = 0;
-			//var_name[var_idx] = $1;
-			//data[var_idx] = -1;
-			//var_idx++;
-			(yyval.d_var) = (yyvsp[-2].d_var) + 1;
-		}
-#line 3342 "kotlin.tab.c" /* yacc.c:1646  */
+		parent = make_nt_node("cf");
+		child = make_token_node("M_OPEN");
+		Add_Child(parent, child);
+		Add_Last((yyvsp[-1].node_var));
+		child = make_token_node("M_CLOSE");
+		Add_Last(child);
+
+		(yyval.node_var) = parent;
+	 }
+#line 3343 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 160:
-#line 1276 "kotlin.y" /* yacc.c:1646  */
+  case 128:
+#line 1397 "kotlin.y" /* yacc.c:1646  */
     {
-			printf("id_decl_stt <- id_decl EQUAL decl_content\n");
-			tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			//tmp_data = Check_Type_Not_Saved($3);
-			//var_type[var_idx] = tmp_data;
-			//var_name[var_idx] = $1;
-			//data[var_idx] = $3;
-			//var_idx++;
-			(yyval.d_var) = tmp_blank + 1;	
-		}
-#line 3358 "kotlin.tab.c" /* yacc.c:1646  */
+		parent = make_nt_node("cf");
+		Add_Child(parent, (yyvsp[0].node_var));
+		
+		(yyval.node_var) = parent;
+	 }
+#line 3354 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 161:
-#line 1289 "kotlin.y" /* yacc.c:1646  */
+  case 129:
+#line 1405 "kotlin.y" /* yacc.c:1646  */
     {
-			printf("decl_content <- LISTOF OPEN list_content CLOSE\n");
-			Print_Blank((yyvsp[-1].d_var));
-			//double * tmp = (double*) &($3);
-			//$$ = *tmp;
-			(yyval.d_var) = (yyvsp[-1].d_var) + 1;	
-		}
-#line 3370 "kotlin.tab.c" /* yacc.c:1646  */
+		parent = make_nt_node("cf_body");
+		Add_Child(parent, (yyvsp[-2].node_var));
+		child = make_token_node("RETURN");
+		Add_Last(child);
+		Add_Last((yyvsp[0].node_var));
+		
+		(yyval.node_var) = parent;
+	}
+#line 3368 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 162:
-#line 1297 "kotlin.y" /* yacc.c:1646  */
+  case 130:
+#line 1415 "kotlin.y" /* yacc.c:1646  */
     {
-			printf("decl_content <- STR\n");
-			Print_Blank(0);
-			//tmp_idx = Find_var_index($1, var_name);
-			//$$ = data[tmp_idx];
-			(yyval.d_var) = 1;	
-		}
-#line 3382 "kotlin.tab.c" /* yacc.c:1646  */
+		parent = make_nt_node("cf_body");
+		Add_Child(parent, (yyvsp[-1].node_var));
+		child = make_token_node("RETURN");
+		Add_Last(child);
+		
+		(yyval.node_var) = parent;
+	}
+#line 3381 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 163:
-#line 1305 "kotlin.y" /* yacc.c:1646  */
+  case 131:
+#line 1424 "kotlin.y" /* yacc.c:1646  */
     {
-			printf("decl_content <- condition\n");
-			Print_Blank((yyvsp[0].d_var));
-			(yyval.d_var) = (yyvsp[0].d_var);
-		}
+		parent = make_nt_node("cf_body");
+		Add_Child(parent, (yyvsp[0].node_var));
+		
+		(yyval.node_var) = parent;
+	}
 #line 3392 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 164:
-#line 1312 "kotlin.y" /* yacc.c:1646  */
+  case 132:
+#line 1432 "kotlin.y" /* yacc.c:1646  */
     {
-			printf("list_content <- STR COMMA list_content\n");
-			Print_Blank((yyvsp[0].d_var));
-			//*($3 + tmp_idx) = $1;
-			//tmp_idx++;
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
-	    	}
+		parent = make_nt_node("com");
+		child = make_token_node("COMMENT");
+		Add_Child(parent, child);
+
+		(yyval.node_var) = parent;
+	}
 #line 3404 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 165:
-#line 1320 "kotlin.y" /* yacc.c:1646  */
-    {
-			printf("list_content <- STR\n");
-			Print_Blank(0);
-			//char** tmp_str = (char**)calloc(100, sizeof(char*));
-			//tmp_idx = 0;
-			//tmp_str[tmp_idx] = $1;
-			//$$ = tmp_str;
-			//tmp_idx++;
-			(yyval.d_var) = 1;	
+  case 133:
+#line 1440 "kotlin.y" /* yacc.c:1646  */
+    { 
+		parent = make_nt_node("com");
+		child = make_token_node("COMMENT_LONG");
+		Add_Child(parent, child);
+
+		(yyval.node_var) = parent;
+	}
+#line 3416 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 134:
+#line 1449 "kotlin.y" /* yacc.c:1646  */
+    { 
+			parent = make_nt_node("condition");
+			Add_Child(parent, (yyvsp[0].node_var));
+		
+			(yyval.node_var) = parent;
 		}
-#line 3419 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3427 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 166:
-#line 1331 "kotlin.y" /* yacc.c:1646  */
-    {
-			printf("list_content <- cal_sent COMMA list_content\n");
-			tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			//*($3 + tmp_idx) = $1;
-			//tmp_idx++;
-			(yyval.d_var) = tmp_blank + 1;
-	    	}
-#line 3432 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 167:
-#line 1340 "kotlin.y" /* yacc.c:1646  */
-    {
-			printf("list_content <- cal_sent\n");
-			Print_Blank((yyvsp[0].d_var));
-			//char** tmp_str = (char**)calloc(100, sizeof(char*));
-			//tmp_idx = 0;
-			//tmp_str[tmp_idx] = $1;
-			//$$ = tmp_str;
-			//tmp_idx++;
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;	
+  case 135:
+#line 1456 "kotlin.y" /* yacc.c:1646  */
+    {	
+			parent = make_nt_node("condition");
+			Add_Child(parent, (yyvsp[-2].node_var));
+			child = make_token_node("SAME");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+	
+			(yyval.node_var) = parent;
 		}
-#line 3447 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3441 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 168:
-#line 1352 "kotlin.y" /* yacc.c:1646  */
+  case 136:
+#line 1466 "kotlin.y" /* yacc.c:1646  */
     {
-			printf("fun_call <- ID OPEN argument CLOSE\n");
-			Print_Blank((yyvsp[-1].d_var));
-			(yyval.d_var) = (yyvsp[-1].d_var) + 1;
+			parent = make_nt_node("condition");
+			Add_Child(parent, (yyvsp[-2].node_var));
+			child = make_token_node("GREATER");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+	
+			(yyval.node_var) = parent;
 		}
-#line 3457 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3455 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 169:
-#line 1359 "kotlin.y" /* yacc.c:1646  */
+  case 137:
+#line 1476 "kotlin.y" /* yacc.c:1646  */
     {
-			tmp_blank = ((yyvsp[-1].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-1].d_var) : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			printf("argument <- calc_sent mul_argument\n");
-			(yyval.d_var) = tmp_blank;
+			parent = make_nt_node("condition");
+			Add_Child(parent, (yyvsp[-2].node_var));
+			child = make_token_node("LESS");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+	
+			(yyval.node_var) = parent;
 		}
-#line 3468 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3469 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 170:
-#line 1366 "kotlin.y" /* yacc.c:1646  */
+  case 138:
+#line 1486 "kotlin.y" /* yacc.c:1646  */
     {
-			Print_Blank((yyvsp[0].d_var));
-			printf("argument <- STR mul_argument\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
+			parent = make_nt_node("condition");
+			Add_Child(parent, (yyvsp[-2].node_var));
+			child = make_token_node("E_GREATER");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+	
+			(yyval.node_var) = parent;
 		}
-#line 3478 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3483 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 171:
-#line 1372 "kotlin.y" /* yacc.c:1646  */
+  case 139:
+#line 1496 "kotlin.y" /* yacc.c:1646  */
     {
-			tmp_blank = ((yyvsp[-2].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-2].d_var) : (yyvsp[0].d_var);
-			printf("argument <- LISTOF OPEN list_content CLOSE mul_argument\n");
-			(yyval.d_var) = tmp_blank + 1;
+			parent = make_nt_node("condition");
+			Add_Child(parent, (yyvsp[-2].node_var));
+			child = make_token_node("E_LESS");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+	
+			(yyval.node_var) = parent;
 		}
-#line 3488 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3497 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 172:
-#line 1378 "kotlin.y" /* yacc.c:1646  */
+  case 140:
+#line 1506 "kotlin.y" /* yacc.c:1646  */
     {
-			tmp_blank = ((yyvsp[-1].d_var) > (yyvsp[0].d_var)) ? (yyvsp[-1].d_var) : (yyvsp[0].d_var);
-			Print_Blank(tmp_blank);
-			printf("argument <- fun_call mul_argument");
-			(yyval.d_var) = tmp_blank + 1;
+			parent = make_nt_node("condition");
+			Add_Child(parent, (yyvsp[-2].node_var));
+			child = make_token_node("AND");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+	
+			(yyval.node_var) = parent;
 		}
-#line 3499 "kotlin.tab.c" /* yacc.c:1646  */
+#line 3511 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
-  case 173:
-#line 1385 "kotlin.y" /* yacc.c:1646  */
+  case 141:
+#line 1516 "kotlin.y" /* yacc.c:1646  */
     {
-			/*empty*/
-		}
-#line 3507 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 174:
-#line 1390 "kotlin.y" /* yacc.c:1646  */
-    {
-			Print_Blank((yyvsp[0].d_var));
-			printf("mul_argument <- COMMA argument\n");
-			(yyval.d_var) = (yyvsp[0].d_var) + 1;
-		}
-#line 3517 "kotlin.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 175:
-#line 1396 "kotlin.y" /* yacc.c:1646  */
-    {
-			/*empty*/
+			parent = make_nt_node("condition");
+			Add_Child(parent, (yyvsp[-2].node_var));
+			child = make_token_node("OR");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+	
+			(yyval.node_var) = parent;
 		}
 #line 3525 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
+  case 142:
+#line 1526 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("condition");
+			Add_Child(parent, (yyvsp[-2].node_var));
+			child = make_token_node("NOT_SAME");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+	
+			(yyval.node_var) = parent;
+		}
+#line 3539 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 143:
+#line 1536 "kotlin.y" /* yacc.c:1646  */
+    { 
+			parent = make_nt_node("condition");
+			Add_Child(parent, (yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 3550 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 144:
+#line 1543 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("condition");
+			Add_Child(parent, (yyvsp[-3].node_var));
+			child = make_token_node("IN");
+			Add_Last(child);
+			Add_Last((yyvsp[-1].node_var));
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 3565 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 145:
+#line 1554 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("condition");
+			Add_Child(parent, (yyvsp[-4].node_var));
+			child = make_token_node("NOT");
+			Add_Last(child);
+			child = make_token_node("IN");
+			Add_Last(child);
+			Add_Last((yyvsp[-1].node_var));
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 3582 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 146:
+#line 1568 "kotlin.y" /* yacc.c:1646  */
+    { 
+			parent = make_nt_node("is_condition");
+			child = make_token_node("ID");
+			Add_Child(parent, child);
+			child = make_token_node("IS");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+	     	}
+#line 3597 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 147:
+#line 1579 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("is_condition");
+			child = make_token_node("ID");
+			Add_Child(parent, child);
+			child = make_token_node("NOT");
+			Add_Last(child);
+			child = make_token_node("IS");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 3614 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 148:
+#line 1593 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("range");
+			child = make_token_node("DOT");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[-1].node_var));
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+      		}
+#line 3628 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 149:
+#line 1603 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("range");
+			child = make_token_node("DOWNTO");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[-1].node_var));
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 3642 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 150:
+#line 1613 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("range");
+			Add_Child(parent, (yyvsp[0].node_var));
+	
+			(yyval.node_var) = parent;
+		}
+#line 3653 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 151:
+#line 1621 "kotlin.y" /* yacc.c:1646  */
+    { 
+			parent = make_nt_node("step_count");
+			child = make_token_node("STEP");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[0].node_var));
+	
+			(yyval.node_var) = parent;
+	  	}
+#line 3666 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 152:
+#line 1630 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("step_count");
+			Add_Child(parent, (yyvsp[0].node_var));
+	
+			(yyval.node_var) = parent;
+		}
+#line 3677 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 153:
+#line 1638 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("withelse");
+			child = make_token_node("ELSEIF");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[-1].node_var));
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 3691 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 154:
+#line 1648 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("withelse");
+			child = make_token_node("ELSE");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 3704 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 155:
+#line 1658 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("id_decl");
+			child = make_token_node("ID");
+			Add_Child(parent, child);
+
+			(yyval.node_var) = parent;
+		}
+#line 3716 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 156:
+#line 1666 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("id_decl");
+			child = make_token_node("ID");
+			Add_Child(parent, child);
+			child = make_token_node("COLUMN");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+		
+			(yyval.node_var) = parent;
+		}
+#line 3731 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 157:
+#line 1678 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("id_decl_stt");
+			Add_Child(parent, (yyvsp[-4].node_var));
+			child = make_token_node("EQUAL");
+			Add_Last(child);
+			Add_Last((yyvsp[-2].node_var));
+			child = make_token_node("COMMA");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+		
+			(yyval.node_var) = parent;
+		}
+#line 3748 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 158:
+#line 1691 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("id_decl_stt");
+			Add_Child(parent, (yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 3759 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 159:
+#line 1698 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("id_decl_stt");
+			Add_Child(parent, (yyvsp[-2].node_var));
+			child = make_token_node("COMMA");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+		
+			(yyval.node_var) = parent;
+		}
+#line 3773 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 160:
+#line 1708 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("id_decl_stt");
+			Add_Child(parent, (yyvsp[-2].node_var));
+			child = make_token_node("EQUAL");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+		
+			(yyval.node_var) = parent;
+		}
+#line 3787 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 161:
+#line 1719 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("decl_content");
+			child = make_token_node("LISTOF");
+			Add_Child(parent, child);
+			child = make_token_node("OPEN");
+			Add_Last(child);
+			Add_Last((yyvsp[-1].node_var));
+			child = make_token_node("CLOSE");
+			Add_Last(child);
+		
+			(yyval.node_var) = parent;
+		}
+#line 3804 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 162:
+#line 1732 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("decl_content");
+			child = make_token_node("STR");
+			Add_Child(parent, child);
+
+			(yyval.node_var) = parent;
+		}
+#line 3816 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 163:
+#line 1740 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("decl_content");
+			Add_Child(parent, (yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 3827 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 164:
+#line 1748 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("list_content");
+			child = make_token_node("STR");
+			Add_Child(parent, child);
+			child = make_token_node("COMMA");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+	
+			(yyval.node_var) = parent;
+	    	}
+#line 3842 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 165:
+#line 1759 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("list_content");
+			child = make_token_node("STR");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[0].node_var));
+	
+			(yyval.node_var) = parent;
+		}
+#line 3855 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 166:
+#line 1768 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("list_content");
+			Add_Child(parent, (yyvsp[-2].node_var));
+			child = make_token_node("COMMA");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+	    	}
+#line 3869 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 167:
+#line 1778 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("list_content");
+			Add_Child(parent, (yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 3880 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 168:
+#line 1786 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("fun_call");
+			child = make_token_node("ID");
+			Add_Child(parent, child);
+			child = make_token_node("OPEN");
+			Add_Last(child);
+			Add_Last((yyvsp[-1].node_var));
+			child = make_token_node("CLOSE");
+			Add_Last(child);
+
+			(yyval.node_var) = parent;
+		}
+#line 3897 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 169:
+#line 1800 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("argument");
+			Add_Child(parent, (yyvsp[-1].node_var));
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 3909 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 170:
+#line 1808 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("argument");
+			child = make_token_node("STR");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[0].node_var));
+	
+			(yyval.node_var) = parent;
+		}
+#line 3922 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 171:
+#line 1817 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("argument");
+			child = make_token_node("LISTOF");
+			Add_Child(parent, child);
+			child = make_token_node("OPEN");
+			Add_Last(child);
+			Add_Last((yyvsp[-2].node_var));
+			child = make_token_node("CLOSE");
+			Add_Last(child);
+			Add_Last((yyvsp[0].node_var));
+	
+			(yyval.node_var) = parent;
+		}
+#line 3940 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 172:
+#line 1831 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("argument");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[0].node_var));
+
+			(yyval.node_var) = parent;
+		}
+#line 3952 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 173:
+#line 1839 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("argument");
+			Add_Child(parent, (yyvsp[0].node_var));
+			
+			(yyval.node_var) = parent;
+		}
+#line 3963 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 174:
+#line 1847 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("mul_argument");
+			child = make_token_node("COMMA");
+			Add_Child(parent, child);
+			Add_Last((yyvsp[0].node_var));
+		
+			(yyval.node_var) = parent;
+		}
+#line 3976 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 175:
+#line 1856 "kotlin.y" /* yacc.c:1646  */
+    {
+			parent = make_nt_node("mul_argument");
+			Add_Child(parent, (yyvsp[0].node_var));
+	
+			(yyval.node_var) = parent;
+		}
+#line 3987 "kotlin.tab.c" /* yacc.c:1646  */
+    break;
+
   case 176:
-#line 1401 "kotlin.y" /* yacc.c:1646  */
-    {}
-#line 3531 "kotlin.tab.c" /* yacc.c:1646  */
+#line 1865 "kotlin.y" /* yacc.c:1646  */
+    {
+		parent = make_token_node("epsilone");
+		(yyval.node_var) = parent;
+	}
+#line 3996 "kotlin.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 3535 "kotlin.tab.c" /* yacc.c:1646  */
+#line 4000 "kotlin.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -3759,11 +4224,12 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 1402 "kotlin.y" /* yacc.c:1906  */
+#line 1870 "kotlin.y" /* yacc.c:1906  */
 
 
 
 /* User code */
+
 extern int line_num;
 
 int yyerror(const char *s)
@@ -3771,21 +4237,8 @@ int yyerror(const char *s)
 	return printf("Line : %d is error with %s\n", line_num, s);
 }
 
-int Check_Type_Saved(char * name)
-{
-	int idx = Find_var_index(name, var_name);
-	return var_type[idx]; 
-}
-
 int Check_Type_Not_Saved(double value)
 {
 	return 1;
 }
 
-void Print_Blank(double n)
-{
-	for(int i = 0; i < n; i++)
-	{
-		printf(" ");
-	}
-}

@@ -194,7 +194,7 @@ eval:	expr eval
 		else
 			tmp_blank = $2;
 		Print_Blank(tmp_blank);
-		printf("expr <- mainfun\n");
+		printf("expr <- mainfun eval\n");
 		$$ = tmp_blank + 1;
 	}
     ;
@@ -764,7 +764,6 @@ fun_stt:  FUNC ID OPEN param CLOSE ret_type fun_body
 		tmp_blank = (tmp_blank > $7) ? tmp_blank : $7;
 		Print_Blank(tmp_blank);
 		printf("fun_stt <- FUNC ID OPEN param CLOSE ret_type fun_body\n");
-		printf("%s\n", $2);
 		$$ = tmp_blank + 1;
       	}
     ;
@@ -882,7 +881,6 @@ when_id: STR
 	{
 		Print_Blank(0);
 		printf("when_id <- STR\n");
-		printf("%s\n", $1);
 		$$ = 1;
 	}
     |	 cal_sent
@@ -1031,14 +1029,12 @@ com: 	COMMENT
 		Print_Blank(0);
 		printf("com <- COMMENT\n");
 		$$ = 1;
-		printf("%s\n", $1);
 	}
     |	COMMENT_LONG	
 	{ 
 		Print_Blank(0);
 		printf("com <- COMMENT_LONG\n");
 		$$ = 1;
-		printf("%s\n", $1);
 	}
     ;
 condition  :	is_condition	
@@ -1356,7 +1352,6 @@ fun_call:	ID OPEN argument CLOSE
 		{
 			printf("fun_call <- ID OPEN argument CLOSE\n");
 			Print_Blank($3);
-			printf("%s\n", $1);
 			$$ = $3 + 1;
 		}
 	;

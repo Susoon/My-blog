@@ -4,106 +4,99 @@
 #include <string.h>
 
 #include "find_data.h"
+#include "parse_tree.h"
 
 extern int yylex(void);
 extern void yyterminate();
 extern int yyerror(const char *s);
 
-char * var_name[1000] = { 0 };
-char * fun_name[1000] = { 0 };
-double data[1000] = { 0 };
-//Type value - 0 : Not_defined 1 : INT, 2 : LONG, 3 : FLOAT, 4 : DOUBLE, 5 : STRING, 6 : CHAR, 7 : BOOL, const : +10
-int var_type[100] = { 0 }; 
-//Type value - 0 : Not_defined 1 : INT, 2 : LONG, 3 : FLOAT, 4 : DOUBLE, 5 : STRING, 6 : CHAR, 7 : BOOL, 8 : UNIT, 9 : ANY, const : +10, question : +20, class_fct : +100
-int fun_type[100] = { 0 };
-char * class_type[1000] = { 0 };
-char * class_name[1000] = { 0 };
-int var_idx = 0, fun_idx = 0, err = 0, tmp_blank, tmp_blank, tmp_idx;
-
 int Check_Type_Saved(char * name);
 int Check_Type_Not_Saved(double value);
-void Print_Blank(double n);
+
+NODE * parent;
+NODE * child;
 
 %}
 
-%union { double d_var; float f_var; int i_var; long l_var; char* s_var; char c_var; char** sp_var}
+%union { struct parse_node* node_var; double d_var; float f_var; int i_var; long l_var; char* s_var; char c_var; char** sp_var}
 
-%type <d_var> start
-%type <d_var> eval
-%type <d_var> expr
-%type <d_var> term
-%type <d_var> factor
-%type <d_var> signed_factor
-%type <d_var> id_decl
-%type <d_var> id_decl_stt
-%type <d_var> fun_body
-%type <d_var> loop_body
-%type <d_var> cf_body
-%type <d_var> withelse
-%type <d_var> noelse
-%type <d_var> when_body
-%type <d_var> param
-%type <d_var> type
-%type <d_var> epsilone
-%type <d_var> com
-%type <d_var> range
-%type <d_var> condition
-%type <d_var> is_condition
-%type <d_var> fun_stt
-%type <d_var> while_stt
-%type <d_var> for_stt
-%type <d_var> if_stt
-%type <d_var> when_stt
-%type <d_var> cal_sent
-%type <d_var> step_count
-%type <d_var> ret_type
-%type <d_var> decl_content
-%type <d_var> list_content
-%type <d_var> else_part
-%type <d_var> fun_call
-%type <d_var> argument
-%type <d_var> main_fun
-%type <d_var> mul_argument
-%type <d_var> assign
-%type <d_var> cf
-%type <d_var> when_id
-%type <d_var> when_condition
-%type <d_var> lambda
-%type <d_var> class_id_decl
-%type <d_var> class_decl
-%type <d_var> class_method_decl
-%type <d_var> class_stt
-%type <d_var> inheritance
-%type <d_var> c_inheritance
-%type <d_var> generic
-%type <d_var> var_decl
-%type <d_var> val_decl
-%type <d_var> fun_type
-%type <d_var> class_param
-%type <d_var> class_keyword
 
-%token <l_var> L_NUMBER
+%type <node_var> start
+%type <node_var> eval
+%type <node_var> expr
+%type <node_var> term
+%type <node_var> factor
+%type <node_var> signed_factor
+%type <node_var> id_decl
+%type <node_var> id_decl_stt
+%type <node_var> fun_body
+%type <node_var> loop_body
+%type <node_var> cf_body
+%type <node_var> withelse
+%type <node_var> noelse
+%type <node_var> when_body
+%type <node_var> param
+%type <node_var> type
+%type <node_var> epsilone
+%type <node_var> com
+%type <node_var> range
+%type <node_var> condition
+%type <node_var> is_condition
+%type <node_var> fun_stt
+%type <node_var> while_stt
+%type <node_var> for_stt
+%type <node_var> if_stt
+%type <node_var> when_stt
+%type <node_var> cal_sent
+%type <node_var> step_count
+%type <node_var> ret_type
+%type <node_var> decl_content
+%type <node_var> list_content
+%type <node_var> else_part
+%type <node_var> fun_call
+%type <node_var> argument
+%type <node_var> main_fun
+%type <node_var> mul_argument
+%type <node_var> assign
+%type <node_var> cf
+%type <node_var> when_id
+%type <node_var> when_condition
+%type <node_var> lambda
+%type <node_var> class_id_decl
+%type <node_var> class_decl
+%type <node_var> class_method_decl
+%type <node_var> class_stt
+%type <node_var> inheritance
+%type <node_var> c_inheritance
+%type <node_var> generic
+%type <node_var> var_decl
+%type <node_var> val_decl
+%type <node_var> fun_type
+%type <node_var> class_param
+%type <node_var> class_keyword
+
+%token <i_var> L_NUMBER
 %token <d_var> NUMBER
-%token <s_var> STR
-%token <d_var> PACK
-%token <d_var> FUNC
-%token <d_var> VAL
-%token <d_var> VAR
-%token <d_var> IMPORT
-%token <d_var> IF
-%token <d_var> ELSEIF
-%token <d_var> ELSE
-%token <d_var> NUL
-%token <d_var> RETURN
-%token <d_var> FOR
-%token <d_var> WHILE
-%token <d_var> WHEN
-%token <d_var> IS
-%token <d_var> IN
-%token <d_var> DOWNTO
-%token <d_var> STEP
-%token <d_var> LISTOF
-%token <d_var> LIST
+%token <node_var> STR
+%token <node_var> PACK
+%token <node_var> FUNC
+%token <node_var> VAL
+%token <node_var> VAR
+%token <node_var> IMPORT
+%token <node_var> IF
+%token <node_var> ELSEIF
+%token <node_var> ELSE
+%token <node_var> NUL
+%token <node_var> RETURN
+%token <node_var> FOR
+%token <node_var> WHILE
+%token <node_var> WHEN
+%token <node_var> IS
+%token <node_var> IN
+%token <node_var> DOWNTO
+%token <node_var> STEP
+%token <node_var> LISTOF
+%token <node_var> LIST
 %token <i_var> INT
 %token <i_var> FLOAT
 %token <i_var> LONG
@@ -113,14 +106,14 @@ void Print_Blank(double n);
 %token <i_var> BOOL
 %token <i_var> ANY
 %token <i_var> UNIT
-%token <d_var> MAIN
+%token <node_var> MAIN
 %token <s_var> ID
-%token <s_var> COMMENT
-%token <s_var> COMMENT_LONG
-%token <i_var> ABST
-%token <i_var> CLASS
-%token <i_var> OVER
-%token <d_var> INTER
+%token <node_var> COMMENT
+%token <node_var> COMMENT_LONG
+%token <node_var> ABST
+%token <node_var> CLASS
+%token <node_var> OVER
+%token <node_var> INTER
 
 %left  M_OPEN M_CLOSE
 %left  COMMA ARROW
@@ -148,1266 +141,1737 @@ void Print_Blank(double n);
 /* Rules */
 goal:	start
     	{
-		Print_Blank($1);
-		printf("goal <- start\n");
+		root = (NODE*)malloc(sizeof(NODE));
+		root -> token_name = "goal";
+		Add_Child(root, $1);
+		Print_Tree(root, 0);
 	}
     ;
 start:	IMPORT start	
 	{
-		Print_Blank($2);
-		printf("start <- IMPORT start\n");
-		$$ = $2 + 1;
+		parent = make_nt_node("start");
+		child = make_token_node("IMPORT");
+		Add_Child(parent, child);
+		Add_Last($2);
+		
+		$$ = parent;
 	}
     |	PACK start 
     	{
-		Print_Blank($2);
-		printf("start <- PACK start\n");
-		$$ = $2 + 1;
+		parent = make_nt_node("start");
+		child = make_token_node("PACK");
+		Add_Child(parent, child);
+		Add_Last($2);
+		
+		$$ = parent;
 	}
     |	eval
-	{ 
-		Print_Blank($1);
-		printf("start <- eval\n");
-		$$ = $1 + 1;
+	{
+		parent = make_nt_node("start");
+		Add_Child(parent, $1);
+		
+		$$ = parent; 
 	}
     ;
 eval:	expr eval	
     	{
-		if($1 > $2)
-			tmp_blank = $1;
-		else
-			tmp_blank = $2;
-		Print_Blank(tmp_blank);
-		printf("eval <- expr eval\n");
-		$$ = tmp_blank + 1; 
+		parent = make_nt_node("eval");
+		Add_Child(parent, $1);
+		Add_Last($2);
+
+		$$ = parent;
     	}
     |	expr	
 	{
-		Print_Blank($1);
-		printf("eval <- expr\n");
-		$$ = $1 + 1;
+		parent = make_nt_node("eval");
+		Add_Child(parent, $1);
+		
+		$$ = parent;
 	}
     |	main_fun eval
 	{
-		if($1 > $2)
-			tmp_blank = $1;
-		else
-			tmp_blank = $2;
-		Print_Blank(tmp_blank);
-		printf("expr <- mainfun\n");
-		$$ = tmp_blank + 1;
+		parent = make_nt_node("eval");
+		Add_Child(parent, $1);
+		Add_Last($2);
+
+		$$ = parent;
 	}
     ;
 expr:	for_stt
- 	{ 
-		Print_Blank($1);
-		printf("expr <- for_stt\n");
-		$$ = $1 + 1;
+ 	{
+		parent = make_nt_node("expr");
+		Add_Child(parent, $1);
+		
+		$$ = parent; 
 	}	
     |	while_stt	
 	{
-		Print_Blank($1);
-		printf("expr <- while_stt\n");
-		$$ = $1;
+		parent = make_nt_node("expr");
+		Add_Child(parent, $1);
+	
+		$$ = parent;
 	}
     |	if_stt	
-	{ 
-		Print_Blank($1);
-		printf("expr <- if_stt\n");
-		$$ = $1 + 1;
+	{
+		parent = make_nt_node("expr");
+		Add_Child(parent, $1);
+		
+		$$ = parent;
 	}
     |	when_stt
-	{ 
-		Print_Blank($1);
-		printf("expr <- when_stt\n");
-		$$ = $1 + 1;
+	{
+		parent= make_nt_node("expr");
+		Add_Child(parent, $1);
+
+		$$ = parent;
 	}
     |	var_decl
 	{
-		Print_Blank($1);
-		printf("expr <- var_decl\n");
-		$$ = $1 + 1;
+		parent = make_nt_node("expr");
+		Add_Child(parent, $1);
+	
+		$$ = parent;
 	}
     |	val_decl
-	{ 
-		Print_Blank($1);
-		printf("expr <- val_decl\n");
-		$$ = $1 + 1;
+	{
+		parent = make_nt_node("expr");
+		Add_Child(parent, $1);
+		
+		$$ = parent; 
 	}
     |	cal_sent	
-	{ 
-		Print_Blank($1);
-		printf("expr <- cal_sent\n");
-		$$ = $1 + 1;
+	{
+		parent = make_nt_node("expr");
+		Add_Child(parent, $1);
+	
+		$$ = parent; 
 	}
     |	fun_stt		
 	{ 
-		Print_Blank($1 + 1);
-		printf("expr <- fun_stt\n");
-		printf("\n\n");
-		$$ = $1;
+		parent = make_nt_node("expr");
+		Add_Child(parent, $1);
+
+		$$ = parent;
 	}
     |	com
 	{
-		Print_Blank($1);
-		printf("expr <- comment\n");
-		$$ = $1 + 1;
-		printf("\n\n");
+		parent = make_nt_node("expr");
+		Add_Child(parent, $1);
+		
+		$$ = parent;
 	}
     |	ID assign cal_sent
 	{
-		if($2 > $3)
-			tmp_blank = $2;
-		else
-			tmp_blank = $3;	
-		Print_Blank(tmp_blank);
-		printf("expr <- ID assign cal_sent\n");
-		$$ = tmp_blank + 1;
+		parent = make_nt_node("expr");
+		child = make_token_node($1);
+		Add_Child(parent, child);
+		Add_Last($2);
+		Add_Last($3);
+
+		$$ = parent;
 	}
     |	ID EQUAL STR
 	{
-		Print_Blank(0);
-		printf("expr <- ID EQUAL STR\n");
-		$$ = 1;
+		parent = make_nt_node("expr");
+		child = make_token_node($1);
+		Add_Child(parent, child);
+		child = make_token_node("EQUAL");
+		Add_Last(child);
+		child = make_token_node("STR");
+		Add_Last(child);
+
+		$$ = parent;
 	}
     |	ID lambda
 	{
-		Print_Blank($2);
-		printf("expr <- ID lambda\n");
-		$$ = $2;
+		parent = make_nt_node("expr");
+		child = make_token_node($1);
+		Add_Child(parent, child);
+		Add_Last($2);
+
+		parent;
 	}
     |	class_stt
 	{
-		Print_Blank($1);
-		printf("expr <- class_stt\n");
-		$$ = $1;
+		parent = make_nt_node("expr");
+		Add_Child(parent, $1);
+		
+		$$ = parent;
 	}
     |	epsilone
 	{
-		/*empty*/
+		parent = make_nt_node("expr");
+		Add_Child(parent, $1);
+
+		$$ = parent;
 	}
     ;
 generic:	GREATER type LESS
 		{
-			Print_Blank($2);
-			printf("generic <- GREATER type LESS\n");
-			$$ = $2;
+			parent = make_nt_node("generic");
+			child = make_token_node("GREATER");
+			Add_Child(parent, child);
+			Add_Last($2);
+			child = make_token_node("LESS");
+			Add_Last(child);
+	
+			$$ = parent;
 		}
 	;
 class_stt:	ABST CLASS ID OPEN class_param CLOSE c_inheritance M_OPEN class_decl M_CLOSE
 	  	{
-			tmp_blank = ($5 > $7) ? $5 : $7;
-			tmp_blank = (tmp_blank > $9) ? tmp_blank : $9;
-			Print_Blank(tmp_blank);
-			printf("class_stt <- ABST CLASS ID OPEN param CLOSE c_inheritance M_OPEN class_decl M_CLOSE\n");
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("class_stt");
+			child = make_token_node("ABST");
+			Add_Child(parent, child);
+			child = make_token_node("CLASS");
+			Add_Last(child);
+			child = make_token_node("ID");
+			Add_Last(child);
+			child = make_token_node("OPEN");
+			Add_Last(child);
+			Add_Last($5);
+			child = make_token_node("CLOSE");
+			Add_Last(child);
+			Add_Last($7);
+			child = make_token_node("M_OPEN");
+			Add_Last(child);
+			Add_Last($9);
+			child = make_token_node("M_CLOSE");
+			Add_Last(child);
+	
+			$$ = parent;
 		}
 	|	CLASS ID OPEN class_param CLOSE c_inheritance M_OPEN class_decl M_CLOSE
 	  	{
-			tmp_blank = ($4 > $6) ? $4 : $6;
-			tmp_blank = (tmp_blank > $8) ? tmp_blank : $8;
-			Print_Blank(tmp_blank);
-			printf("class_stt <- CLASS ID OPEN param CLOSE c_inheritance M_OPEN class_decl M_CLOSE\n");
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("class_stt");
+			child = make_token_node("CLASS");
+			Add_Child(parent, child);
+			child = make_token_node("ID");
+			Add_Last(child);
+			child = make_token_node("OPEN");
+			Add_Last(child);
+			Add_Last($4);
+			child = make_token_node("CLOSE");
+			Add_Last(child);
+			Add_Last($6);
+			child = make_token_node("M_OPEN");
+			Add_Last(child);
+			Add_Last($8);
+			child = make_token_node("M_CLOSE");
+			Add_Last(child);
+	
+			$$ = parent;
 		}
 	|	INTER ID M_OPEN class_decl M_CLOSE
 	  	{
-			Print_Blank($4);
-			printf("class_stt <- INTER ID M_OPEN class_decl M_CLOSE\n");
-			$$ = $4 + 1;
+			parent = make_nt_node("class_stt");
+			child = make_token_node("INTER");
+			Add_Child(parent, child);
+			child = make_token_node("ID");
+			Add_Last(child);
+			child = make_token_node("M_OPEN");
+			Add_Last(child);
+			Add_Last($4);
+			child = make_token_node("M_CLOSE");
+			Add_Last(child);
+	
+			$$ = parent;
 		}
 	;
 val_decl:	VAL id_decl_stt
 	    	{
-			Print_Blank($2);
-			printf("val_decl <- VAL id_decl_stt\n");
-			$$ = $2 + 1;
+			parent = make_nt_node("val_decl");
+			child = make_token_node("VAL");
+			Add_Child(parent, child);
+			Add_Last($2);
+
+			$$ = parent;
 		}
 	;
 var_decl:	VAR id_decl_stt
 	    	{
-			Print_Blank($2);
-			printf("var_decl <- VAR id_decl_stt\n");
-			$$ = $2 + 1;
+			parent = make_nt_node("var_decl");
+			child = make_token_node("VAR");
+			Add_Child(parent, child);
+			Add_Last($2);
+
+			$$ = parent;
 		}
 	;
 class_keyword:	OVER
 	     	{
-			Print_Blank(0);
-			printf("class_keyword <- OVER\n");
-			$$ = 1;
+			parent = make_nt_node("class_keyword");
+			child = make_token_node("OVER");
+			Add_Child(parent, child);
+
+			$$ = parent;
 		}
 	|	ABST
 		{
-			Print_Blank(0);
-			printf("class_keyword <- ABST\n");
-			$$ = 1;
+			parent = make_nt_node("class_keyword");
+			parent = make_token_node("ABST");
+			Add_Child(parent, child);
+
+			$$ = parent;
 		}
 	|	epsilone
 		{
-			/*empty*/
+			parent = make_token_node("class_keyword");
+			Add_Child(parent, $1);
+
+			$$ = parent;
 		}
 	;	
 class_id_decl:	class_keyword var_decl
 	     	{
-			Print_Blank($2);
-			printf("class_id_decl <- class_keyword var_decl\n");
-			$$ = $2 + 1;
+			parent = make_nt_node("class_id_decl");
+			Add_Child(parent, $1);
+			Add_Last($2);
+		
+			$$ = parent;
 		}
 	|	class_keyword val_decl
 	     	{
-			Print_Blank($2);
-			printf("class_id_decl <- class_keyword val_decl\n");
-			$$ = $2 + 1;
+			parent = make_nt_node("class_id_decl");
+			Add_Child(parent, $1);
+			Add_Last($2);
+		
+			$$ = parent;
 		}
 	;
 class_decl:	class_id_decl class_decl
 	  	{
-			tmp_blank = ($1 > $2) ? $1 : $2;
-			Print_Blank(tmp_blank);
-			printf("class_decl <- class_id_decl class_decl\n");
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("class_decl");
+			Add_Child(parent, $1);
+			Add_Last($2);
+		
+			$$ = parent;
 		}
 	|	class_method_decl class_decl
 	  	{
-			tmp_blank = ($1 > $2) ? $1 : $2;
-			Print_Blank(tmp_blank);
-			printf("class_decl <- class_method_decl class_decl\n");
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("class_decl");
+			Add_Child(parent, $1);
+			Add_Last($2);
+		
+			$$ = parent;
 		}
 	|	class_id_decl
 	  	{
-			Print_Blank($1);
-			printf("class_decl <- class_id_decl\n");
-			$$ = $1 + 1;
+			parent = make_nt_node("class_decl");
+			Add_Child(parent, $1);
+		
+			$$ = parent;
 		}
 	|	class_method_decl
 	  	{
-			Print_Blank($1);
-			printf("class_decl <- class_method_decl\n");
-			$$ = $1 + 1;
+			parent = make_nt_node("class_decl");
+			Add_Child(parent, $1);
+		
+			$$ = parent;
 		}
 	;
 class_method_decl:	class_keyword fun_stt
 		 	{
-				tmp_blank = ($1 > $2) ? $1 : $2;
-				Print_Blank(tmp_blank);
-				printf("class_method_decl <- class_keyword fun_stt\n");
-				$$ = tmp_blank + 1;
+				parent = make_nt_node("class_method_decl");
+				Add_Child(parent, $1);
+			
+				$$ = parent;
 			}
 	;
 c_inheritance:	COLUMN inheritance
 	     	{
-			Print_Blank($2);
-			printf("c_inheritance <- COLUMN inheritance\n");
-			$$ = $2 + 1;
+			parent = make_nt_node("c_inheritance");
+			child = make_token_node("COLUMN");
+			Add_Child(parent, child);
+			Add_Last($2);
+		
+			$$ = parent;
 		}
 	|	epsilone
 		{
-			/*empty*/
+			parent = make_nt_node("c_inheritance");
+			Add_Child(parent, $1);
+		
+			$$ = parent;
 		}
 	;
 inheritance:	fun_call COMMA inheritance
 	   	{
-			tmp_blank = ($3 > $1) ? $3 : $1;
-			Print_Blank(tmp_blank);
-			printf("inheritance <- fun_call COMMA inheritance\n");
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("inheritnace");
+			Add_Child(parent, $1);
+			child = make_token_node("COMMA");
+			Add_Last(child);
+			Add_Last($3);
+
+			$$ = parent;
 		}
 	|	ID COMMA inheritance
 		{
-			Print_Blank($3);
-			printf("inheritance <- ID COMMA inheritance\n");
-			$$ = $3 + 1;
+			parent = make_nt_node("inheritance");
+			child = make_token_node("ID");
+			Add_Child(parent, child);
+			child = make_token_node("COMMA");
+			Add_Last(child);
+			Add_Last($3);
+
+			$$ = parent;
 		}
 	|	ID
 		{
-			Print_Blank(0);
-			printf("inheritance <- ID\n");
-			$$ = 1;
+			parent = make_nt_node("inheritance");
+			child = make_token_node("ID");
+			Add_Child(parent, child);
+
+			$$ = parent;
 		}
 	|	fun_call
 		{
-			Print_Blank($1);
-			printf("inheritance <- fun_call\n");
-			$$ = $1 + 1;
+			parent = make_nt_node("inheritnace");
+			Add_Child(parent, $1);
+
+			$$ = parent;
 		}
 	;
 lambda: DOT ID M_OPEN cal_sent M_CLOSE lambda
       	{
-		tmp_blank = ($4 > $6) ? $4 : $6;
-		Print_Blank(tmp_blank);
-		printf("lambda <- DOT ID M_OPEN cal_sent M_CLOSE lambda\n");
-		$$ = tmp_blank;
+		parent = make_nt_node("lambda");
+		child = make_token_node("DOT");
+		Add_Child(parent, child);
+		child = make_token_node("ID");
+		Add_Last(child);
+		child = make_token_node("M_OPEN");
+		Add_Last(child);
+		Add_Last($4);
+		child = make_token_node("M_CLOSE");
+		Add_Last(child);
+		Add_Last($6);
+
+		$$ = parent;
 	}
     |	epsilone
 	{
-		/*empty*/
+		parent = make_nt_node("lambda");
+		Add_Child(parent, $1);
+
+		$$ = parent;
 	}
     ;
 assign:	EQUAL
       	{
-		Print_Blank(0);
-		printf("assign <- EQUAL\n");
-		$$ = 1;
+		parent = make_nt_node("assign");
+		child = make_token_node("EQUAL");
+		Add_Child(parent, child);
+
+		$$ = parent;
 	}
     |	E_PLUS
       	{
-		Print_Blank(0);
-		printf("assign <- E_PLUS\n");
-		$$ = 1;
+		parent = make_nt_node("assign");
+		child = make_token_node("E_PLUS");
+		Add_Child(parent, child);
+
+		$$ = parent;
 	}
     |	E_MINUS
       	{
-		Print_Blank(0);
-		printf("assign <- E_MINUS\n");
-		$$ = 1;
+		parent = make_nt_node("assign");
+		child = make_token_node("E_MINUS");
+		Add_Child(parent, child);
+
+		$$ = parent;
 	}
     |	E_MULT
       	{
-		Print_Blank(0);
-		printf("assign <- E_MULT\n");
-		$$ = 1;
+		parent = make_nt_node("assign");
+		child = make_token_node("E_MULT");
+		Add_Child(parent, child);
+
+		$$ = parent;
 	}
     |	E_DIV
       	{
-		Print_Blank(0);
-		printf("assign <- E_DIV\n");
-		$$ = 1;
+		parent = make_nt_node("assign");
+		child = make_token_node("E_DIV");
+		Add_Child(parent, child);
+
+		$$ = parent;
 	}
     ;
 main_fun: FUNC MAIN OPEN CLOSE fun_body
 	{
-		Print_Blank($5);
-		printf("main_fun <- FUNC MAIN OPEN CLOSE fun_body\n");
-		printf("\n\n");
-		$$ = $5 + 1;
+		parent = make_nt_node("main_fun");
+		child = make_token_node("FUNC");
+		Add_Child(parent, child);
+		child = make_token_node("MAIN");
+		Add_Last(child);
+		child = make_token_node("OPEN");
+		Add_Last(child);
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		Add_Last($5);
+	
+		$$ = parent;
 	}
     ;
 cal_sent: cal_sent PLUS term	
-       	  {	
-		tmp_blank = ($1 > $3) ? $1 : $3;
-		Print_Blank(tmp_blank);
-		printf("cal_sent <- cal_sent PLUS term\n");
-		$$ = tmp_blank + 1;
+       	  {
+		parent = make_nt_node("cal_sent");
+		Add_Child(parent, $1);
+		child = make_token_node("PLUS");
+		Add_Last(child);
+		Add_Last($3);
+
+		$$ = parent;
 	  }
     |	  cal_sent MINUS term
 	  {
-		tmp_blank = ($1 > $3) ? $1 : $3;
-		Print_Blank(tmp_blank);
-		printf("cal_sent <- cal_sent MINUS term\n");
-		$$ = tmp_blank + 1;
+		parent = make_nt_node("cal_sent");
+		Add_Child(parent, $1);
+		child = make_token_node("MINUS");
+		Add_Last(child);
+		Add_Last($3);
+
+		$$ = parent;
 	  }
     |	  term			
 	  { 
-		Print_Blank($1);
-		printf("cal_sent <- term\n");
-		$$ = $1 + 1;
+		parent = make_nt_node("term");
+		Add_Child(parent, $1);
+	
+		$$ = parent;
 	  }
     ;
 term:	term MULT signed_factor 
     	{ 
-		tmp_blank = ($1 > $3) ? $1 : $3;
-		Print_Blank(tmp_blank);
-		printf("term <- term MULT signed_factor\n");
-		$$ = tmp_blank + 1;
+		parent = make_nt_node("term");
+		Add_Child(parent, $1);
+		child = make_token_node("MULT");
+		Add_Last(child);
+		Add_Last($3);
+
+		$$ = parent;
     	} 
     |	term DIV signed_factor	
 	{ 
-		tmp_blank = ($1 > $3) ? $1 : $3;
-		Print_Blank(tmp_blank);
-		printf("term <- term DIV signed_factor\n");
-		$$ = tmp_blank + 1;
+		parent = make_nt_node("term");
+		Add_Child(parent, $1);
+		child = make_token_node("DIV");
+		Add_Last(child);
+		Add_Last($3);
+
+		$$ = parent;
 	} 
     |	signed_factor	
 	{ 
-		Print_Blank($1);
-		printf("term <- signed_factor\n");
-		$$ = $1 + 1;
+		parent = make_nt_node("term");
+		Add_Child(parent, $1);
+
+		$$ = parent;
 	}
     ;
 signed_factor:	PLUS factor 
 	     	{ 
-			Print_Blank($2);
-			printf("signed_factor <- PLUS factor\n");
-			$$ = $2 + 1;
+			parent = make_nt_node("signed_factor");
+			child = make_token_node("PLUS");
+			Add_Child(parent, child);
+			Add_Last($2);
+
+			$$ = parent;
 	     	}
 	|    	MINUS factor 
 		{ 
-			Print_Blank($2);
-			printf("signed_factor <- MINUS factor\n");
-			$$ = $2 + 1;
+			parent = make_nt_node("signed_factor");
+			child = make_token_node("MINUS");
+			Add_Child(parent, child);
+			Add_Last($2);
+
+			$$ = parent;
 		}
     	|	factor 
-		{ 
-			Print_Blank($1);
-			printf("signed_factor <- factor\n");
-			$$ = $1 + 1;
+		{
+			parent = make_nt_node("signed_factor");
+			Add_Child(parent, $1);
+
+			$$ = parent;
 		}
     ;
 factor: NUMBER	
       	{
-		Print_Blank(0);
-		printf("factor <- NUMBER\n");
-		$$ = 1;
+		parent = make_nt_node("factor");
+		child = make_token_node("NUMBER");
+		Add_Child(parent, child);
+		
+		$$ = parent;
         }
     |	L_NUMBER	
       	{
-		Print_Blank(0);
-		printf("factor <- L_NUMBER\n");
-		$$ = 1;
+		parent = make_nt_node("factor");
+		child = make_token_node("L_NUMBER");
+		Add_Child(parent, child);
+
+		$$ = parent;
 	}
     |	ID 	
 	{ 
-		Print_Blank(0);
-		printf("factor <- ID\n");
-		//var_idx = Find_var_index($1, var_name);
-		//$$ = data[var_idx];
-		$$ = 1;
+		parent = make_nt_node("factor");
+		child = make_token_node("ID");
+		Add_Child(parent, child);
+
+		$$ = parent;
 	}
     |	ID DOT fun_call 
 	{ 
-		Print_Blank($3);
-		printf("factor <- ID DOT fun_call\n");
-		//var_idx = Find_var_index($1, var_name);
-		//$$ = data[var_idx];
-		$$ = $3 + 1;
+		parent = make_nt_node("factor");
+		child = make_token_node("ID");
+		Add_Child(parent, child);
+		child = make_token_node("DOT");
+		Add_Last(child);
+		Add_Last($3);
+
+		$$ = parent;
 	}	
     |	ID DOT ID
 	{ 
-		Print_Blank(0);
-		printf("factor <- ID DOT ID\n");
-		//var_idx = Find_var_index($1, var_name);
-		//$$ = data[var_idx];
-		$$ = 1;
+		parent = make_nt_node("factor");
+		child = make_token_node("ID");
+		Add_Child(parent, child);
+		child = make_token_node("DOT");
+		Add_Last(child);
+		child = make_token_node("ID");
+		Add_Last(child);
+
+		$$ = parent;
 	}
     |	ID INC
 	{ 
-		Print_Blank(0);
-		printf("factor <- ID INC\n");
-		//var_idx = Find_var_index($1, var_name);
-		//$$ = data[var_idx];
-		$$ = 1;
+		parent = make_nt_node("factor");
+		child = make_token_node("ID");
+		Add_Child(parent, child);
+		child = make_token_node("INC");
+		Add_Last(child);
+
+		$$ = parent;
 	}
     |	ID DEC
 	{ 
-		Print_Blank(0);
-		printf("factor <- ID DEC\n");
-		//var_idx = Find_var_index($1, var_name);
-		//$$ = data[var_idx];
-		$$ = 1;	
+		parent = make_nt_node("factor");
+		child = make_token_node("ID");
+		Add_Child(parent, child);
+		child = make_token_node("DEC");
+		Add_Last(child);
+
+		$$ = parent;
 	}
     |	INC ID
 	{ 
-		Print_Blank(0);
-		printf("factor <- INC ID\n");
-		//var_idx = Find_var_index($1, var_name);
-		//$$ = data[var_idx];
-		$$ = 1;
+		parent = make_nt_node("factor");
+		child = make_token_node("INC");
+		Add_Child(parent, child);
+		child = make_token_node("ID");
+		Add_Last(child);
+
+		$$ = parent;
 	}
     |	DEC ID
 	{ 
-		Print_Blank(0);
-		printf("factor <- DEC ID\n");
-		//var_idx = Find_var_index($1, var_name);
-		//$$ = data[var_idx];
-		$$ = 1;
+		parent = make_nt_node("factor");
+		child = make_token_node("DEC");
+		Add_Child(parent, child);
+		child = make_token_node("ID");
+		Add_Last(child);
+
+		$$ = parent;
 	}
     |	OPEN cal_sent CLOSE 
 	{ 
-		Print_Blank($2);
-		printf("factor <- OPEN cal_sent CLOSE\n");
-		$$ = $2 + 1;
+		parent = make_nt_node("factor");
+		child = make_token_node("OPEN");
+		Add_Child(parent, child);
+		Add_Last($2);
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+
+		$$ = parent;
 	}
     |	fun_call
 	{ 
-		Print_Blank($1);
-		printf("factor <- fun_call\n");
-		$$ = $1 + 1;
+		parent = make_nt_node("factor");
+		Add_Child(parent, $1);
+
+		$$ = parent;
 	}
     |	NUL	
 	{ 
-		Print_Blank(0);
-		printf("factor <- NULL\n");
-		$$ = 1;
+		parent = make_nt_node("factor");
+		child = make_token_node("NULL");
+		Add_Child(parent, child);
+
+		$$ = parent;
 	}
     ;
 param:	ID COLUMN fun_type COMMA param 
      	{ 
-		tmp_blank = ($3 > $5)? $3 : $5; 
-		Print_Blank(tmp_blank);
-		printf("param <- ID COLUMN fun_type COMMA param\n");
-		$$ = tmp_blank + 1;	
+		parent = make_nt_node("param");
+		child = make_token_node("ID");
+		Add_Child(parent, child);
+		child = make_token_node("COLUMN");
+		Add_Last(child);
+		Add_Last($3);
+		child = make_token_node("COMMA");
+		Add_Last(child);
+		Add_Last($5);
+		
+		$$ = parent;
      	}
     |	ID COLUMN fun_type		
 	{
-		Print_Blank($3);
-		printf("param <- ID COLUMN fun_type\n");
-		$$ = $3 + 1;
+		parent = make_nt_node("param");
+		child = make_token_node("ID");
+		Add_Child(parent, child);
+		child = make_token_node("COLUMN");
+		Add_Last(child);
+		Add_Last($3);
+
+		$$ = parent;
 	}
     |	epsilone
 	{
-		/*empty*/
+		parent = make_nt_node("param");
+		Add_Child(parent, $1);
+		
+		$$ = parent;
 	}
     ;
 class_param:	VAL id_decl COMMA class_param
 	    	{
-			tmp_blank = ($2 > $4) ? $2 : $4;
-			Print_Blank(tmp_blank);
-			printf("class_param <- VAR id_decl COMMA class_param\n");
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("class_param");
+			child = make_token_node("VAL");
+			Add_Child(parent, child);
+			Add_Last($2);
+			child = make_token_node("COMMA");
+			Add_Last(child);
+			Add_Last($4);
+
+			$$ = parent;
 		}
 	|	VAR id_decl COMMA class_param
 	    	{
-			tmp_blank = ($2 > $4) ? $2 : $4;
-			Print_Blank(tmp_blank);
-			printf("class_param <- VAR id_decl COMMA class_param\n");
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("class_param");
+			child = make_token_node("VAR");
+			Add_Child(parent, child);
+			Add_Last($2);
+			child = make_token_node("COMMA");
+			Add_Last(child);
+			Add_Last($4);
+
+			$$ = parent;
 		}
 	|	VAL id_decl
 	    	{
-			Print_Blank($2);
-			printf("class_param <- VAL id_decl\n");
-			$$ = $2 + 1;
+			parent = make_nt_node("class_param");
+			child = make_token_node("VAL");
+			Add_Child(parent, child);
+			Add_Last($2);
+
+			$$ = parent;
 		}
 	|	VAR id_decl
 	    	{
-			Print_Blank($2);
-			printf("class_param <- VAR id_decl\n");
-			$$ = $2 + 1;
+			parent = make_nt_node("class_param");
+			child = make_token_node("VAR");
+			Add_Child(parent, child);
+			Add_Last($2);
+
+			$$ = parent;
 		}
 	|	epsilone
 		{
-			/*empty*/
+			parent = make_nt_node("class_param");
+			Add_Child(parent, $1);
+			
+			$$ = parent;
 		}
 	;
 type:	INT	
     	{
-		Print_Blank(0);
-		printf("type <- INT\n");
-		$$ = 1;
+		parent = make_nt_node("type");
+		child = make_token_node("INT");
+		child -> type = 1;
+		Add_Child(parent, child);
+		
+		$$ = parent;
     	}
     |	LONG
     	{
-		Print_Blank(0);
-		printf("type <- LONG\n");
-		//$$ = 2;
-		$$ = 1;
+		parent = make_nt_node("type");
+		child = make_token_node("LONG");
+		child -> type = 2;
+		Add_Child(parent, child);
+		
+		$$ = parent;
     	}
     |	FLOAT	
 	{ 
-		Print_Blank(0);
-		printf("type <- FLOAT\n");
-		//$$ = 3;
-		$$ = 1;
+		parent = make_nt_node("type");
+		child = make_token_node("FLOAT");
+		child -> type = 3;
+		Add_Child(parent, child);
+		
+		$$ = parent;
 	}
     |	DOUBLE	
 	{ 
-		Print_Blank(0);
-		printf("type <- DOUBLE\n");
-		//$$ = 4;
-		$$ = 1;
+		parent = make_nt_node("type");
+		child = make_token_node("DOUBLE");
+		child -> type = 4;
+		Add_Child(parent, child);
+		
+		$$ = parent;
 	}
     |	STRING	
 	{ 
-		Print_Blank(0);
-		printf("type <- STRING\n");
-		//$$ = 5;
-		$$ = 1;
+		parent = make_nt_node("type");
+		child = make_token_node("STRING");
+		child -> type = 5;
+		Add_Child(parent, child);
+		
+		$$ = parent;
 	}
     |	CHAR	
 	{ 
-		Print_Blank(0);
-		printf("type <- CHAR\n");
-		//$$ = 6;
-		$$ = 1;
+		parent = make_nt_node("type");
+		child = make_token_node("CHAR");
+		child -> type = 6;
+		Add_Child(parent, child);
+		
+		$$ = parent;
 	}
     |	BOOL
 	{
-		Print_Blank(0);
-		printf("type <- BOOL\n");
-		//$$ = 7;
-		$$ = 1;
+		parent = make_nt_node("type");
+		child = make_token_node("BOOL");
+		child -> type = 7;
+		Add_Child(parent, child);
+		
+		$$ = parent;
 	}
     |	LIST generic
 	{
-		Print_Blank($2);
-		printf("type <- LIST generic\n");
-		$$ = $2 + 1;
+		parent = make_nt_node("type");
+		child = make_token_node("LIST");
+		child -> type = 30;
+		Add_Child(parent, child);
+		
+		$$ = parent;
 	}
     ;
 fun_type:	type
 	  	{
-			Print_Blank($1);
-			printf("fun_type <- type\n");
-			$$ = $1 + 1;
+			parent = make_nt_node("fun_type");
+			Add_Child(parent, $1);
+
+			$$ = parent;
 		}
 	|
 	  	UNIT	
 		{ 
-			Print_Blank(0);
-			printf("fun_type <- UNIT\n");
-			//$$ = 7;
-			$$ = 1;
+			parent = make_nt_node("fun_type");
+			child = make_token_node("UNIT");
+			Add_Child(parent, child);
+			child -> type = 8;
+
+			$$ = parent;
 		}
     	|	ANY	
 		{ 
-			Print_Blank(0);
-			printf("fun_type <- ANY\n");
-			//$$ = 8;
-			$$ = 1;
+			parent = make_nt_node("fun_type");
+			child = make_token_node("ANY");
+			Add_Child(parent, child);
+			child -> type = 9;
+
+			$$ = parent;
 		}
     	;
 fun_stt:  FUNC ID OPEN param CLOSE ret_type fun_body 
        	{
-		tmp_blank = ($4 > $6)? $4 : $6;
-		tmp_blank = (tmp_blank > $7) ? tmp_blank : $7;
-		Print_Blank(tmp_blank);
-		printf("fun_stt <- FUNC ID OPEN param CLOSE ret_type fun_body\n");
-		printf("%s\n", $2);
-		$$ = tmp_blank + 1;
+		parent = make_nt_node("fun_stt");
+		child = make_token_node("FUNC");
+		Add_Child(parent, child);
+		child = make_token_node("ID");
+		Add_Last(child);
+		child = make_token_node("OPEN");
+		Add_Last(child);
+		Add_Last($4);
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		Add_Last($6);
+		Add_Last($7);
+
+		$$ = parent;
       	}
     ;
 ret_type: COLUMN type QUESTION 
 	{
-		Print_Blank($2);
-		printf("ret_type <- COLUMN type QUESTION\n");
-		//$$ = $2;
-		$$ = $2 + 1;
+		parent = make_nt_node("ret_type");
+		child = make_token_node("COLUMN");
+		Add_Child(parent, child);
+		Add_Last($2);
+		child = make_token_node("QUESTION");
+		Add_Last(child);
+
+		$$ = parent;
 	}
     |	  COLUMN fun_type
 	{
-		Print_Blank($2);
-		printf("ret_type <- COLUMN fun_type\n");
-		//$$ = $2 + 20;
-		$$ = $2;
+		parent = make_nt_node("ret_type");
+		child = make_token_node("COLUMN");
+		Add_Child(parent, child);
+		Add_Last($2);
+
+		$$ = parent;
 	}
     |	 epsilone
 	{
-		/*empty*/
+		parent = make_nt_node("ret_type");
+		Add_Child(parent, $1);
+	
+		$$ = parent;
 	}
     ;
 fun_body: M_OPEN eval RETURN cal_sent M_CLOSE	
 	{
-		tmp_blank = ($2 > $4) ? $2 : $4;
-		Print_Blank(tmp_blank);
-		printf("fun_body <- M_OPEN eval RETURN cal_sent M_CLOSE\n");
-		$$ = tmp_blank + 1;
+		parent = make_nt_node("fun_body");
+		child = make_token_node("M_OPEN");
+		Add_Child(parent, child);
+		Add_Last($2);
+		child = make_token_node("RETURN");
+		Add_Last(child);
+		Add_Last($4);
+		child = make_token_node("M_CLOSE");
+		Add_Last(child);
+
+		$$ = parent;
 	}
     |	 M_OPEN eval RETURN M_CLOSE	
 	{
-		Print_Blank($2);
-		printf("fun_body <- M_OPEN eval RETURN M_CLOSE\n");
-		$$ = $2 + 1;
+		parent = make_nt_node("fun_body");
+		child = make_token_node("M_OPEN");
+		Add_Child(parent, child);
+		Add_Last($2);
+		child = make_token_node("RETURN");
+		Add_Last(child);
+		child = make_token_node("M_CLOSE");
+		Add_Last(child);
+
+		$$ = parent;
 	}
     |	  M_OPEN eval M_CLOSE	
 	{ 
-		Print_Blank($2);
-		printf("fun_body <- M_OPEN eval M_CLOSE\n");
-		$$ = $2 + 1;
+		parent = make_nt_node("fun_body");
+		child = make_token_node("M_OPEN");
+		Add_Child(parent, child);
+		Add_Last($2);
+		child = make_token_node("M_CLOSE");
+		Add_Last(child);
+
+		$$ = parent;
 	}
     |	  EQUAL cal_sent	
 	{
-		Print_Blank($2);
-		printf("fun_body <- EQUAL cal_sent\n");
-		$$ = $2 + 1;	
+		parent = make_nt_node("fun_body");
+		child = make_token_node("EQUAL");
+		Add_Child(parent, child);
+		Add_Last($2);
+	
+		$$ = parent;
 	}
     |	 EQUAL if_stt
 	{
-		Print_Blank($2);
-		printf("fun_body <- EQUAL if_stt\n");
-		$$ = $2 + 1;	
+		parent = make_nt_node("fun_body");
+		child = make_token_node("EQUAL");
+		Add_Child(parent, child);
+		Add_Last($2);
+	
+		$$ = parent;
 	}
     |	 EQUAL when_stt
 	{
-		Print_Blank($2);
-		printf("fun_body <- EQUAL when_stt\n");
-		$$ = $2 + 1;	
+		parent = make_nt_node("fun_body");
+		child = make_token_node("EQUAL");
+		Add_Child(parent, child);
+		Add_Last($2);
+	
+		$$ = parent;
 	}
     |	  epsilone		
 	{
-		//empty	
+		parent = make_nt_node("fun_body");
+		Add_Child(parent, $1);
+
+		$$ = parent;
 	}
     ;
 while_stt: WHILE OPEN condition CLOSE M_OPEN loop_body M_CLOSE 
 	 {
-		tmp_blank = ($3 > $6) ? $3 : $6;
-		Print_Blank(tmp_blank);
-		printf("while_stt <- WHILE OPEN condition CLOSE M_OPEN loop_body M_CLOSE\n");
-		$$ = tmp_blank + 1;
+		parent = make_nt_node("while_stt");
+		child = make_token_node("WHILE");
+		Add_Child(parent, child);
+		child = make_token_node("OPEN");
+		Add_Last(child);
+		Add_Last($3);
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		child = make_token_node("M_OPEN");
+		Add_Last(child);
+		Add_Last($6);
+		child = make_token_node("M_CLOSE");
+		Add_Last(child);
+
+		$$ = parent;
 	 }
     ;
 for_stt: FOR OPEN condition CLOSE M_OPEN loop_body M_CLOSE 
 	 {
-		tmp_blank = ($3 > $6) ? $3 : $6;
-		Print_Blank(tmp_blank);
-		printf("for_stt <- FOR OPEN condition CLOSE M_OPEN loop_body M_CLOSE\n");
-		$$ = $3 + 1;
+		parent = make_nt_node("for_stt");
+		child = make_token_node("FOR");
+		Add_Child(parent, child);
+		child = make_token_node("OPEN");
+		Add_Last(child);
+		Add_Last($3);
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		child = make_token_node("M_OPEN");
+		Add_Last(child);
+		Add_Last($6);
+		child = make_token_node("M_CLOSE");
+		Add_Last(child);
+
+		$$ = parent;
       	 }
     ;
 loop_body: eval		
 	 {
-		Print_Blank($1);
-		printf("loop_body <- eval\n");
-		$$ = $1 + 1;
+		parent = make_nt_node("loop_body");
+		Add_Child(parent, $1);
+		
+		$$ = parent;
 	 }
     ;
 when_body: when_id ARROW when_id when_body
 	{
-		tmp_blank = ($1 > $3) ? $1 : $3;
-		Print_Blank(tmp_blank);
-		printf("when_body <- when_id ARROW when_id when_body\n");
-		$$ = tmp_blank + 1;
+		parent = make_nt_node("when_body");
+		Add_Child(parent ,$1);
+		child = make_token_node("ARROW");
+		Add_Last(child);
+		Add_Last($3);
+		Add_Last($4);
+		
+		$$ = parent;
 	}
     |	   ELSE ARROW when_id
 	{
-		Print_Blank($3);
-		printf("when_body <- ELSE ARROW when_id\n");
-		$$ = $3 + 1;
+		parent = make_nt_node("when_body");
+		child = make_token_node("ELSE");
+		Add_Child(parent, child);
+		child = make_token_node("ARROW");
+		Add_Last(child);
+		Add_Last($3);
+
+		$$ = parent;
 	}
     |	  when_condition ARROW when_id when_body
 	{
-		tmp_blank = ($1 > $3) ? $1 : $3;
-		tmp_blank = (tmp_blank> $4) ? tmp_blank : $4;
-		Print_Blank(tmp_blank);
-		printf("when_body <- when_condition ARROW cal_sent when_body\n");
-		$$ = tmp_blank + 1;
+		parent = make_nt_node("when_body");
+		Add_Child(parent, $1);
+		child = make_token_node("ARROW");
+		Add_Last(child);
+		Add_Last($3);
+		Add_Last($4);
+
+		$$ = parent;
 	}
     |	   epsilone	
 	{
-		//empty
+		parent = make_nt_node("when_body");
+		Add_Child(parent, $1);
+	
+		$$ = parent;
 	}
     ;
 when_id: STR
 	{
-		Print_Blank(0);
-		printf("when_id <- STR\n");
-		printf("%s\n", $1);
-		$$ = 1;
+		parent = make_nt_node("when_id");
+		child = make_token_node("STR");
+		Add_Child(parent, child);
+
+		$$ = parent;
 	}
     |	 cal_sent
 	{
-		Print_Blank($1);
-		printf("when_id <- cal_sent\n");
-		$$ = $1 + 1;
+		parent = make_nt_node("when_id");
+		Add_Child(parent, $1);
+
+		$$ = parent;
 	}
     ;
 when_condition:	IS type
 		{
-			Print_Blank($2);
-			printf("when_condition <- IS type\n");
-			$$ = $2;
+			parent = make_nt_node("when_condition");
+			child = make_token_node("IS");
+			Add_Child(parent, child);
+			Add_Last($2);
+
+			$$ = parent;
 		}
 	|	NOT IS type
 		{
-			Print_Blank($3);
-			printf("when_condition <- NOT IS type\n");
-			$$ = $3;
+			parent = make_nt_node("when_condition");
+			child = make_token_node("NOT");
+			Add_Child(parent, child);
+			child = make_token_node("IS");
+			Add_Last(child);
+			Add_Last($3);
+
+			$$ = parent;
 		}
 	|	when_id IN cal_sent range
 		{
-			tmp_blank = ($1 > $3) ? $1 : $3;
-			tmp_blank = (tmp_blank > $4) ? tmp_blank : $4;
-			Print_Blank(tmp_blank);
-			printf("when_condition <- when_id IN range\n");
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("when_condition");
+			Add_Child(parent, $1);
+			child = make_token_node("IN");
+			Add_Last(child);
+			Add_Last($3);
+			Add_Last($4);
+		
+			$$ = parent;
 		}
 	|	when_id NOT IN cal_sent range
 		{
-			tmp_blank = ($1 > $4) ? $1 : $4;
-			Print_Blank(tmp_blank);
-			printf("when_condition <- when_id NOT IN cal_sent range\n");
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("when_condition");
+			Add_Child(parent, $1);
+			child = make_token_node("NOT");
+			Add_Last(child);
+			child = make_token_node("IN");
+			Add_Last(child);
+			Add_Last($4);
+			Add_Last($5);
+		
+			$$ = parent;
 		}
 	;
 when_stt:  WHEN OPEN ID CLOSE M_OPEN when_body M_CLOSE	
 	{
-		Print_Blank($6);
-		printf("when_stt <- WHEN OPEN ID CLOSE M_OPEN when_body M_CLOSE\n");
-		$$ = $6 + 1;
+		parent = make_nt_node("when_stt");
+		child = make_token_node("WHEN");
+		Add_Child(parent, child);
+		child = make_token_node("OPEN");
+		Add_Last(child);
+		child = make_token_node("ID");
+		Add_Last(child);
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		child = make_token_node("M_OPEN");
+		Add_Last(child);
+		Add_Last($6);
+		child = make_token_node("M_CLOSE");	
+		Add_Last(child);
+		
+		$$ = parent;
 	}
     |	   WHEN M_OPEN when_body M_CLOSE
 	{
-		Print_Blank($3);
-		printf("when_stt <- WHEN M_OPEN when_body M_CLOSE\n");
-		$$ = $3 + 1;
+		parent = make_nt_node("when_stt");
+		child = make_token_node("WHEN");
+		Add_Child(parent, child);
+		child = make_token_node("M_OPEN");
+		Add_Last(child);
+		Add_Last($3);
+		child = make_token_node("M_CLOSE");	
+		Add_Last(child);
+
+		$$ = parent;
 	}
     ;
 if_stt:	IF noelse
       	{
-		Print_Blank($2);
-		printf("if_stt <- IF noelse\n");
-		$$ = $2 + 1;
+		parent = make_nt_node("if_stt");
+		child = make_token_node("IF");
+		Add_Child(parent, child);
+		Add_Last($2);
+
+		$$ = parent;
 	}
     |	IF withelse
 	{
-		Print_Blank($2);
-		printf("if_stt <- IF withelse\n");
-		$$ = $2 + 1;
+		parent = make_nt_node("if_stt");
+		child = make_token_node("IF");
+		Add_Child(parent, child);
+		Add_Last($2);
+
+		$$ = parent;
 	}
     ;
 noelse:	OPEN condition CLOSE cf
       	{
-		tmp_blank = ($2 > $4) ? $2 : $4;
-		Print_Blank(tmp_blank);
-		printf("noelse <- OPEN condition CLOSE cf\n");
-		/*if($2)
-		{
-			$$ = $4;
-		}*/
-		$$ = tmp_blank + 1;	
+		parent = make_nt_node("noelse");
+		child = make_token_node("OPEN");
+		Add_Child(parent, child);
+		Add_Last($2);
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		Add_Last($4);
+
+		$$ = parent;
 	}
     ;
 withelse: OPEN condition CLOSE cf
 	{
-		tmp_blank = ($2 > $4) ? $2 : $4;
-		Print_Blank(tmp_blank);
-		printf("withelse <- OPEN condition CLOSE cf\n");
-		$$ = tmp_blank + 1;
+		parent = make_nt_node("withelse");
+		child = make_token_node("OPEN");
+		Add_Child(parent, child);
+		Add_Last($2);
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		Add_Last($4);
+
+		$$ = parent;
 	}
     |	  OPEN condition CLOSE cf else_part
 	{
-		tmp_blank = ($2 > $4) ? $2 : $4;
-		tmp_blank = (tmp_blank > $5) ? tmp_blank : $5; 
-		Print_Blank(tmp_blank);
-		printf("OPEN condition CLOSE cf else_part\n");
-		$$ = tmp_blank + 1; 
+		parent = make_nt_node("withelse");
+		child = make_token_node("OPEN");
+		Add_Child(parent, child);
+		Add_Last($2);
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		Add_Last($4);
+		Add_Last($5);
+
+		$$ = parent;
 	}
     ;
 else_part: ELSEIF OPEN condition CLOSE cf else_part
 	 {
-		tmp_blank = ($3 > $5) ? $3 : $5;
-		tmp_blank = (tmp_blank > $6) ? tmp_blank : $6;
-		Print_Blank(tmp_blank);
-		printf("else_part <- ELSEIF OPEN condition CLOSE cf else_part\n");
-		$$ = tmp_blank + 1;
+		parent = make_nt_node("else_part");
+		child = make_token_node("ELSEIF");
+		Add_Child(parent, child);
+		child = make_token_node("OPEN");
+		Add_Last(child);
+		Add_Last($3);
+		child = make_token_node("CLOSE");
+		Add_Last(child);
+		Add_Last($5);
+		Add_Last($6);
+	
+		$$ = parent;
 	 }
     |	   ELSE cf
 	 {
-		Print_Blank($2);
-		printf("else_part <- ELSE cf\n");
-		$$ = $2 + 1;
+		parent = make_nt_node("else_part");
+		child = make_token_node("ELSE");
+		Add_Child(parent, child);
+		Add_Last($2);
+
+		$$ = parent;
 	 }
     |	   epsilone
 	 {
-		//empty
+		parent = make_nt_node("else_part");
+		Add_Child(parent, $1);
+	
+		$$ = parent;
 	 }
     ;
 cf:	 M_OPEN cf_body M_CLOSE
 	 {
-		Print_Blank($2);
-		printf("cf <- M_OPEN cf_body M_CLOSE\n");
-		$$ = $2 + 1;
+		parent = make_nt_node("cf");
+		child = make_token_node("M_OPEN");
+		Add_Child(parent, child);
+		Add_Last($2);
+		child = make_token_node("M_CLOSE");
+		Add_Last(child);
+
+		$$ = parent;
 	 }
     |	 cf_body
 	 {
-		Print_Blank($1);
-		printf("cf <- cf_body\n");
-		$$ = $1 + 1;
+		parent = make_nt_node("cf");
+		Add_Child(parent, $1);
+		
+		$$ = parent;
 	 }
 	 
 cf_body: eval RETURN cal_sent	
        	{
-		tmp_blank = ($1 > $3) ? $1 : $3;
-		Print_Blank(tmp_blank);
-		printf("cf_body <- eval RETURN cal_sent\n");
-		$$ = tmp_blank + 1;
+		parent = make_nt_node("cf_body");
+		Add_Child(parent, $1);
+		child = make_token_node("RETURN");
+		Add_Last(child);
+		Add_Last($3);
+		
+		$$ = parent;
 	}
     |	eval RETURN	
        	{
-		Print_Blank($1);
-		printf("cf_body <- eval RETURN\n");
-		$$ = $1 + 1;
+		parent = make_nt_node("cf_body");
+		Add_Child(parent, $1);
+		child = make_token_node("RETURN");
+		Add_Last(child);
+		
+		$$ = parent;
 	}	
     |	eval
        	{
-		Print_Blank($1);
-		printf("cf_body <- M_OPEN eval M_CLOSE\n");
-		$$ = $1 + 1;
+		parent = make_nt_node("cf_body");
+		Add_Child(parent, $1);
+		
+		$$ = parent;
 	}
     ;
 com: 	COMMENT	
-     	{ 
-		Print_Blank(0);
-		printf("com <- COMMENT\n");
-		$$ = 1;
-		printf("%s\n", $1);
+     	{
+		parent = make_nt_node("com");
+		child = make_token_node("COMMENT");
+		Add_Child(parent, child);
+
+		$$ = parent;
 	}
     |	COMMENT_LONG	
 	{ 
-		Print_Blank(0);
-		printf("com <- COMMENT_LONG\n");
-		$$ = 1;
-		printf("%s\n", $1);
+		parent = make_nt_node("com");
+		child = make_token_node("COMMENT_LONG");
+		Add_Child(parent, child);
+
+		$$ = parent;
 	}
     ;
 condition  :	is_condition	
 	   	{ 
-			Print_Blank($1);
-			printf("condition <- is_condition\n");
-			$$ = $1 + 1;	
+			parent = make_nt_node("condition");
+			Add_Child(parent, $1);
+		
+			$$ = parent;
 		}
 	|	condition SAME condition	
 		{	
-			tmp_blank = ($1 > $3) ? $1 : $3;	
-			Print_Blank(tmp_blank);
-			printf("condition <- condition SAME condition\n");
-			/*if($1 == $3)
-				$$ = 1;
-			else
-				$$ = 0;*/
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("condition");
+			Add_Child(parent, $1);
+			child = make_token_node("SAME");
+			Add_Last(child);
+			Add_Last($3);
+	
+			$$ = parent;
 		}
 	|	condition GREATER condition
 		{
-			tmp_blank = ($1 > $3) ? $1 : $3;
-			Print_Blank(tmp_blank);
-			printf("condition <- condition GREATER condition\n");
-			/*if($1 < $3)
-				$$ = 1;
-			else
-				$$ = 0;*/
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("condition");
+			Add_Child(parent, $1);
+			child = make_token_node("GREATER");
+			Add_Last(child);
+			Add_Last($3);
+	
+			$$ = parent;
 		}
 	|	condition LESS condition
 		{
-			tmp_blank = ($1 > $3) ? $1 : $3;
-			Print_Blank(tmp_blank);
-			printf("condition <- condition LESS condition\n");
-			/*if($1 > $3)
-				$$ = 1;
-			else
-				$$ = 0;*/
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("condition");
+			Add_Child(parent, $1);
+			child = make_token_node("LESS");
+			Add_Last(child);
+			Add_Last($3);
+	
+			$$ = parent;
 		}
 	|	condition E_GREATER condition
 		{
-			tmp_blank = ($1 > $3) ? $1 : $3;
-			Print_Blank(tmp_blank);
-			printf("condition <- condition E_GREATER condition\n");
-			/*if($1 <= $3)
-				$$ = 1;
-			else
-				$$ = 0;*/
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("condition");
+			Add_Child(parent, $1);
+			child = make_token_node("E_GREATER");
+			Add_Last(child);
+			Add_Last($3);
+	
+			$$ = parent;
 		}
 	|	condition E_LESS condition
 		{
-			tmp_blank = ($1 > $3) ? $1 : $3;
-			Print_Blank(tmp_blank);
-			printf("condition <- condition E_LESS condition\n");
-			/*if($1 >= $3)
-				$$ = 1;
-			else
-				$$ = 0;*/
-			$$ = tmp_blank + 1;	
+			parent = make_nt_node("condition");
+			Add_Child(parent, $1);
+			child = make_token_node("E_LESS");
+			Add_Last(child);
+			Add_Last($3);
+	
+			$$ = parent;
 		}
 	|	condition AND condition
 		{
-			tmp_blank = ($1 > $3) ? $1 : $3;	
-			Print_Blank(tmp_blank);
-			printf("condition <- condition AND condition\n");
-			/*if($1 && $3)
-				$$ = 1;
-			else
-				$$ = 0;*/
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("condition");
+			Add_Child(parent, $1);
+			child = make_token_node("AND");
+			Add_Last(child);
+			Add_Last($3);
+	
+			$$ = parent;
 		}
 	|	condition OR condition
 		{
-			tmp_blank = ($1 > $3) ? $1 : $3;
-			Print_Blank(tmp_blank);
-			printf("condition <- condition OR condition\n");
-			/*if($1 || $3)
-				$$ = 1;
-			else
-				$$ = 0;*/
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("condition");
+			Add_Child(parent, $1);
+			child = make_token_node("OR");
+			Add_Last(child);
+			Add_Last($3);
+	
+			$$ = parent;
 		}
 	|	condition NOT_SAME condition
 		{
-			tmp_blank = ($1 > $3) ? $1 : $3;
-			Print_Blank(tmp_blank);
-			printf("condition <- condition NOT_SAME condition\n");
-			/*if($1 != $3)
-				$$ = 1;
-			else
-				$$ = 0;*/
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("condition");
+			Add_Child(parent, $1);
+			child = make_token_node("NOT_SAME");
+			Add_Last(child);
+			Add_Last($3);
+	
+			$$ = parent;
 		}
 	|	cal_sent	
 		{ 
-			Print_Blank($1);
-			printf("condition <- cal_sent\n");
-			$$ = $1 + 1;
+			parent = make_nt_node("condition");
+			Add_Child(parent, $1);
+
+			$$ = parent;
 		}
 	|	signed_factor IN cal_sent range	
 		{
-			tmp_blank = ($1 > $3) ? $1 : $3;
-			tmp_blank = (tmp_blank > $4) ? tmp_blank : $4;
-			Print_Blank(tmp_blank);
-			printf("condition <- factor IN cal_sent range\n");
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("condition");
+			Add_Child(parent, $1);
+			child = make_token_node("IN");
+			Add_Last(child);
+			Add_Last($3);
+			Add_Last($4);
+
+			$$ = parent;
 		}
 	|	signed_factor NOT IN cal_sent range	
 		{
-			tmp_blank = ($1 > $4) ? $1 : $4;
-			tmp_blank = (tmp_blank > $5) ? tmp_blank : $5;
-			Print_Blank(tmp_blank);
-			printf("condition <- factor NOT IN cal_sent range\n");
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("condition");
+			Add_Child(parent, $1);
+			child = make_token_node("NOT");
+			Add_Last(child);
+			child = make_token_node("IN");
+			Add_Last(child);
+			Add_Last($4);
+			Add_Last($5);
+
+			$$ = parent;
 		}
 	;
 is_condition :	ID IS type	
 	     	{ 
-			printf("is_condition <- ID IS type\n");
-			Print_Blank($3);
-			//tmp_idx = Find_var_index($1, var_name);
-			//tmp_data = Check_Type_Saved($1);
-			//if(var_type[tmp_idx] == tmp_data)
-			//	$$ = 1;
-			//else
-			//	$$ = 0;
-			$$ = $3 + 1;
+			parent = make_nt_node("is_condition");
+			child = make_token_node("ID");
+			Add_Child(parent, child);
+			child = make_token_node("IS");
+			Add_Last(child);
+			Add_Last($3);
+
+			$$ = parent;
 	     	}
 	|	ID NOT IS type	
 		{
-			printf("is_condition <- ID NOT IS type\n");
-			Print_Blank($4);
-			//tmp_idx = Find_var_index($1, var_name);
-			//tmp_data = Check_Type_Saved($1);
-			//if(var_type[tmp_idx] != tmp_data)
-			//	$$ = 1;
-			//else
-			//	$$ = 0;
-			$$ = $4 + 1;
+			parent = make_nt_node("is_condition");
+			child = make_token_node("ID");
+			Add_Child(parent, child);
+			child = make_token_node("NOT");
+			Add_Last(child);
+			child = make_token_node("IS");
+			Add_Last(child);
+			Add_Last($4);
+
+			$$ = parent;
 		}
 	;
 range	:	DOT cal_sent step_count 
       		{
-			printf("range <- DOUBLEDOT cal_sent step_count\n");
-			tmp_blank = ($2 > $3) ? $2 : $3;
-			Print_Blank(tmp_blank);
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("range");
+			child = make_token_node("DOT");
+			Add_Child(parent, child);
+			Add_Last($2);
+			Add_Last($3);
+
+			$$ = parent;
       		}
 	|	DOWNTO cal_sent step_count 
 		{
-			printf("range <- DOWNTO cal_sent step_count\n");
-			tmp_blank = ($2 > $3) ? $2 : $3;
-			Print_Blank(tmp_blank);
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("range");
+			child = make_token_node("DOWNTO");
+			Add_Child(parent, child);
+			Add_Last($2);
+			Add_Last($3);
+
+			$$ = parent;
 		}
 	|	epsilone
 		{
-			/*empty*/
+			parent = make_nt_node("range");
+			Add_Child(parent, $1);
+	
+			$$ = parent;
 		}
 	;
 step_count:	STEP factor
 	  	{ 
-			printf("step_count <- STEP factor\n");
-			Print_Blank($2);
-			$$ = $2 + 1;
+			parent = make_nt_node("step_count");
+			child = make_token_node("STEP");
+			Add_Child(parent, child);
+			Add_Last($2);
+	
+			$$ = parent;
 	  	}
 	|	epsilone
 		{
-			/*empty*/
+			parent = make_nt_node("step_count");
+			Add_Child(parent, $1);
+	
+			$$ = parent;
 		}
 	;
 withelse:	ELSEIF expr withelse	
 		{
-			printf("withelse <- ELSEIF expr withelse\n");
-			tmp_blank = ($2 > $3) ? $2 : $3;	
-			Print_Blank(tmp_blank);
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("withelse");
+			child = make_token_node("ELSEIF");
+			Add_Child(parent, child);
+			Add_Last($2);
+			Add_Last($3);
+
+			$$ = parent;
 		}
 	|	ELSE expr		
 		{
-			printf("withelse <- ELSE expr\n");
-			Print_Blank($2);
-			$$ = $2 + 1;
+			parent = make_nt_node("withelse");
+			child = make_token_node("ELSE");
+			Add_Child(parent, child);
+			Add_Last($2);
+
+			$$ = parent;
 		}
 	;
 id_decl:	ID 
        		{
-			printf("id_decl <- ID\n");
-			Print_Blank(0);
-			$$ = 1;
+			parent = make_nt_node("id_decl");
+			child = make_token_node("ID");
+			Add_Child(parent, child);
+
+			$$ = parent;
 		}
 	|	ID COLUMN type
 		{
-			printf("id_decl <- ID COLUMN type\n");
-			Print_Blank($3);
-			$$ = $3;
+			parent = make_nt_node("id_decl");
+			child = make_token_node("ID");
+			Add_Child(parent, child);
+			child = make_token_node("COLUMN");
+			Add_Last(child);
+			Add_Last($3);
+		
+			$$ = parent;
 		}
 	;
 id_decl_stt:	id_decl EQUAL decl_content COMMA id_decl_stt 
 		{
-			printf("id_decl_stt <- id_decl EQUAL decl_content COMMA id_decl_stt\n");
-			tmp_blank = ($3 > $5) ? $3 : $5;
-			tmp_blank = (tmp_blank > $1) ? tmp_blank : $1;
-			Print_Blank(tmp_blank);
-			//tmp_data = Check_Type_Not_Saved($3);
-			//tmp_idx = Var_Save($1, $3, tmp_data, var_name, data, var_type);
-			//if(tmp_idx == -1)
-			//	printf("Error : ID is saved already!\n\n");
-			//if(tmp_idx == var_idx + 1)
-			//	var_idx = tmp_idx;
-			//else
-			//	printf("Error : Hole in array!\n");
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("id_decl_stt");
+			Add_Child(parent, $1);
+			child = make_token_node("EQUAL");
+			Add_Last(child);
+			Add_Last($3);
+			child = make_token_node("COMMA");
+			Add_Last(child);
+			Add_Last($5);
+		
+			$$ = parent;
 		}
  	|	id_decl	
 		{
-			printf("id_decl_stt <- id_decl\n");
-			Print_Blank($1);
-			//var_type[var_idx] = 0;
-			//var_name[var_idx] = $1;
-			//data[var_idx] = -1;
-			//var_idx++;
-			$$ = $1 + 1;
+			parent = make_nt_node("id_decl_stt");
+			Add_Child(parent, $1);
+
+			$$ = parent;
 		}
  	|	id_decl COMMA id_decl_stt	
 		{
-			printf("id_decl_stt <- id_decl\n");
-			Print_Blank($1);
-			//var_type[var_idx] = 0;
-			//var_name[var_idx] = $1;
-			//data[var_idx] = -1;
-			//var_idx++;
-			$$ = $1 + 1;
+			parent = make_nt_node("id_decl_stt");
+			Add_Child(parent, $1);
+			child = make_token_node("COMMA");
+			Add_Last(child);
+			Add_Last($3);
+		
+			$$ = parent;
 		}
 	|	id_decl EQUAL decl_content	
 		{
-			printf("id_decl_stt <- id_decl EQUAL decl_content\n");
-			tmp_blank = ($1 > $3) ? $1 : $3;
-			Print_Blank(tmp_blank);
-			//tmp_data = Check_Type_Not_Saved($3);
-			//var_type[var_idx] = tmp_data;
-			//var_name[var_idx] = $1;
-			//data[var_idx] = $3;
-			//var_idx++;
-			$$ = tmp_blank + 1;	
+			parent = make_nt_node("id_decl_stt");
+			Add_Child(parent, $1);
+			child = make_token_node("EQUAL");
+			Add_Last(child);
+			Add_Last($3);
+		
+			$$ = parent;
 		}
 	;
 decl_content:	LISTOF OPEN list_content CLOSE	
 		{
-			printf("decl_content <- LISTOF OPEN list_content CLOSE\n");
-			Print_Blank($3);
-			//double * tmp = (double*) &($3);
-			//$$ = *tmp;
-			$$ = $3 + 1;	
+			parent = make_nt_node("decl_content");
+			child = make_token_node("LISTOF");
+			Add_Child(parent, child);
+			child = make_token_node("OPEN");
+			Add_Last(child);
+			Add_Last($3);
+			child = make_token_node("CLOSE");
+			Add_Last(child);
+		
+			$$ = parent;
 		}
 	|	STR
 		{
-			printf("decl_content <- STR\n");
-			Print_Blank(0);
-			//tmp_idx = Find_var_index($1, var_name);
-			//$$ = data[tmp_idx];
-			$$ = 1;	
+			parent = make_nt_node("decl_content");
+			child = make_token_node("STR");
+			Add_Child(parent, child);
+
+			$$ = parent;
 		}
 	|	condition
 		{
-			printf("decl_content <- condition\n");
-			Print_Blank($1);
-			$$ = $1;
+			parent = make_nt_node("decl_content");
+			Add_Child(parent, $1);
+
+			$$ = parent;
 		}
 	;
 list_content:	STR COMMA list_content
 	    	{
-			printf("list_content <- STR COMMA list_content\n");
-			Print_Blank($3);
-			//*($3 + tmp_idx) = $1;
-			//tmp_idx++;
-			$$ = $3 + 1;
+			parent = make_nt_node("list_content");
+			child = make_token_node("STR");
+			Add_Child(parent, child);
+			child = make_token_node("COMMA");
+			Add_Last(child);
+			Add_Last($3);
+	
+			$$ = parent;
 	    	}
 	|	STR
 		{
-			printf("list_content <- STR\n");
-			Print_Blank(0);
-			//char** tmp_str = (char**)calloc(100, sizeof(char*));
-			//tmp_idx = 0;
-			//tmp_str[tmp_idx] = $1;
-			//$$ = tmp_str;
-			//tmp_idx++;
-			$$ = 1;	
+			parent = make_nt_node("list_content");
+			child = make_token_node("STR");
+			Add_Child(parent, child);
+			Add_Last($1);
+	
+			$$ = parent;
 		}
 	|	cal_sent COMMA list_content
 	    	{
-			printf("list_content <- cal_sent COMMA list_content\n");
-			tmp_blank = ($1 > $3) ? $1 : $3;
-			Print_Blank(tmp_blank);
-			//*($3 + tmp_idx) = $1;
-			//tmp_idx++;
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("list_content");
+			Add_Child(parent, $1);
+			child = make_token_node("COMMA");
+			Add_Last(child);
+			Add_Last($3);
+
+			$$ = parent;
 	    	}
 	|	cal_sent
 		{
-			printf("list_content <- cal_sent\n");
-			Print_Blank($1);
-			//char** tmp_str = (char**)calloc(100, sizeof(char*));
-			//tmp_idx = 0;
-			//tmp_str[tmp_idx] = $1;
-			//$$ = tmp_str;
-			//tmp_idx++;
-			$$ = $1 + 1;	
+			parent = make_nt_node("list_content");
+			Add_Child(parent, $1);
+
+			$$ = parent;
 		}
 	;
 fun_call:	ID OPEN argument CLOSE
 		{
-			printf("fun_call <- ID OPEN argument CLOSE\n");
-			Print_Blank($3);
-			printf("%s\n", $1);
-			$$ = $3 + 1;
+			parent = make_nt_node("fun_call");
+			child = make_token_node("ID");
+			Add_Child(parent, child);
+			child = make_token_node("OPEN");
+			Add_Last(child);
+			Add_Last($3);
+			child = make_token_node("CLOSE");
+			Add_Last(child);
+
+			$$ = parent;
 		}
 	;
 argument:	cal_sent mul_argument
 		{
-			tmp_blank = ($1 > $2) ? $1 : $2;
-			Print_Blank(tmp_blank);
-			printf("argument <- calc_sent mul_argument\n");
-			$$ = tmp_blank;
+			parent = make_nt_node("argument");
+			Add_Child(parent, $1);
+			Add_Last($2);
+
+			$$ = parent;
 		}
 	|	STR mul_argument
 		{
-			Print_Blank($2);
-			printf("argument <- STR mul_argument\n");
-			$$ = $2 + 1;
+			parent = make_nt_node("argument");
+			child = make_token_node("STR");
+			Add_Child(parent, child);
+			Add_Last($2);
+	
+			$$ = parent;
 		}
 	|	LISTOF OPEN list_content CLOSE mul_argument
 		{
-			tmp_blank = ($3 > $5) ? $3 : $5;
-			printf("argument <- LISTOF OPEN list_content CLOSE mul_argument\n");
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("argument");
+			child = make_token_node("LISTOF");
+			Add_Child(parent, child);
+			child = make_token_node("OPEN");
+			Add_Last(child);
+			Add_Last($3);
+			child = make_token_node("CLOSE");
+			Add_Last(child);
+			Add_Last($5);
+	
+			$$ = parent;
 		}
 	|	fun_call mul_argument
 		{
-			tmp_blank = ($1 > $2) ? $1 : $2;
-			Print_Blank(tmp_blank);
-			printf("argument <- fun_call mul_argument");
-			$$ = tmp_blank + 1;
+			parent = make_nt_node("argument");
+			Add_Child(parent, child);
+			Add_Last($2);
+
+			$$ = parent;
 		}
 	|	epsilone
 		{
-			/*empty*/
+			parent = make_nt_node("argument");
+			Add_Child(parent, $1);
+			
+			$$ = parent;
 		}
 	;
 mul_argument:	COMMA argument
 	    	{
-			Print_Blank($2);
-			printf("mul_argument <- COMMA argument\n");
-			$$ = $2 + 1;
+			parent = make_nt_node("mul_argument");
+			child = make_token_node("COMMA");
+			Add_Child(parent, child);
+			Add_Last($2);
+		
+			$$ = parent;
 		}
 	|	epsilone
 		{
-			/*empty*/
+			parent = make_nt_node("mul_argument");
+			Add_Child(parent, $1);
+	
+			$$ = parent;
 		}
 	;
 
-epsilone: /*empty*/	{} ;
+epsilone: /*empty*/	
+	{
+		parent = make_token_node("epsilone");
+		$$ = parent;
+	}
+     ;
 %%
 
 
 /* User code */
+
 extern int line_num;
 
 int yyerror(const char *s)
@@ -1415,21 +1879,8 @@ int yyerror(const char *s)
 	return printf("Line : %d is error with %s\n", line_num, s);
 }
 
-int Check_Type_Saved(char * name)
-{
-	int idx = Find_var_index(name, var_name);
-	return var_type[idx]; 
-}
-
 int Check_Type_Not_Saved(double value)
 {
 	return 1;
 }
 
-void Print_Blank(double n)
-{
-	for(int i = 0; i < n; i++)
-	{
-		printf(" ");
-	}
-}

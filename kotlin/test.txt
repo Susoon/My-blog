@@ -216,14 +216,14 @@ fun main() {
 fun main() {
     val items = listOf("apple", "banana", "kiwifruit")
     for (item in items) {
-        println(item)
+	println(item)
     }
 }
 
 fun main() {
     val items = listOf("apple", "banana", "kiwifruit")
     for (index in items.indices) {
-        println("item at $index is ${items[index]}")
+	println("item at $index is ${items[index]}"))
     }
 }
 

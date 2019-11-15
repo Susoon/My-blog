@@ -319,7 +319,7 @@ fun main() {
     println("Area of triangle is ${triangle.calculateArea()}, its perimeter is ${triangle.perimeter}")
 }
 
-abstract class Shape(val sides: LIST<Double>) {
+abstract class Shape(val sides: List<Double>) {
     val perimeter: Double = sides.sum()
     abstract fun calculateArea(): Double
 }
