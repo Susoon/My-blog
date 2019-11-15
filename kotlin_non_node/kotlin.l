@@ -15,11 +15,11 @@ NUMBER 	([0-9])+([.])?([0-9])*
 STR 	["]([a-zA-Z0-9_ \t\r\$.,;&!?\`\(\)\{\}\[\]\+\-\*'=><\:\/\n\:])*([\0]?)["]
 SPACE	[ \r\t]+
 EOL	[\n]
-PACK	(package)([a-zA-Z])+([.][a-zA-Z]+)*([.][*])?
+PACK	(package)[ ]*([a-zA-Z])+([.][a-zA-Z]+)*([.][*])?
 FUNC	fun
 VAL	val
 VAR	var
-IMPORT	(import)([a-zA-Z])+([.][a-zA-Z]+)*([.][*])?
+IMPORT	(import)[ ]*([a-zA-Z])+([.][a-zA-Z]+)*([.][*])?
 IF	if
 ELSEIF	elseif
 ELSE	else
