@@ -74,6 +74,8 @@ int main(void)
 	
 	sorting(arr, n);
 
+	for(int i = 1; i<=n;i++){printf("%d ",i);}
+	printf("\n");
 	for(int i = 1; i <= n; i++)
 	{
 		printf("%d ",arr[i]);

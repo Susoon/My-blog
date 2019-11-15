@@ -28,10 +28,11 @@ void Make_Tree(Node * parent, int start, int end)
 		parent -> right_child = NULL;
 		if(end == n)
 			parent -> right_child_num = -1;
+		return;
 	}
 
 	int i_half = (start + end) / 2;
-	double d_half = (start + end) / 2;
+	double d_half = (double)(start + end) / 2;
 	parent -> index = d_half;
 	parent -> left_child_num = i_half - start + 1;
 	parent -> right_child_num = end - i_half;
@@ -116,7 +117,7 @@ int main(void)
 
 	Make_Tree(root, 1, n);
 
-	//sorting(arr);
+	sorting(arr);
 
 	for(int i = 1; i <= n; i++)
 	{
