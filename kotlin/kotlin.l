@@ -13,14 +13,13 @@ extern int yyerror(const char*);
 L_NUMBER ([0-9])+([.])?([0-9])*[L]
 NUMBER 	([0-9])+([.])?([0-9])*
 STR 	["]([a-zA-Z0-9_ \t\r\$.,;&!?\(\)\{\}\[\]\+\-\*'=><\:\/\n\:])*["]
-FILE_SEP ([a-zA-Z][.])+[a-zA-Z]
 SPACE	[ \r\t]+
 EOL	[\n]
-PACK	package
+PACK	(package)([a-zA-Z])+([.][a-zA-Z]+)*([.][*])?
 FUNC	fun
 VAL	val
 VAR	var
-IMPORT	import
+IMPORT	(import)([a-zA-Z])+([.][a-zA-Z]+)*([.][*])?
 IF	if
 ELSEIF	elseif
 ELSE	else
@@ -34,7 +33,7 @@ IN	in
 DOWNTO	downTo
 STEP	step
 LISTOF	listOf
-LIST	List
+LIST	LIST
 INT	(I|i)nt
 LONG	(L|l)ong
 FLOAT	(F|f)loat
@@ -65,10 +64,6 @@ COMMENT_LONG	[/][*]([a-zA-Z0-9_ \t\r\$.,;&!?\(\)\{\}\+\-\*\"'=><\:\/\n\:])*[*][/
 
 {STR} { yylval.s_var = yytext;
 	return STR;
-}
-
-{FILE_SEP}	{ yylval.s_var = yytext;
-		return FILE_SEP;
 }
 
 {SPACE} { /*empty*/

@@ -74,17 +74,17 @@ void Print_Blank(double n);
 %type <d_var> class_method_decl
 %type <d_var> class_stt
 %type <d_var> inheritance
+%type <d_var> c_inheritance
 %type <d_var> generic
 %type <d_var> var_decl
 %type <d_var> val_decl
 %type <d_var> fun_type
-%type <d_var> class_var_decl
-%type <d_var> class_val_decl
+%type <d_var> class_param
+%type <d_var> class_keyword
 
 %token <l_var> L_NUMBER
 %token <d_var> NUMBER
 %token <s_var> STR
-%token <d_var> FILE_SEP
 %token <d_var> PACK
 %token <d_var> FUNC
 %token <d_var> VAL
@@ -152,17 +152,17 @@ goal:	start
 		printf("goal <- start\n");
 	}
     ;
-start:	IMPORT FILE_SEP start	
+start:	IMPORT start	
 	{
-		Print_Blank($3);
-		printf("start <- IMPORT FILE_SEP start\n");
-		$$ = $3 + 1;
+		Print_Blank($2);
+		printf("start <- IMPORT start\n");
+		$$ = $2 + 1;
 	}
-    |	PACK FILE_SEP start 
+    |	PACK start 
     	{
-		Print_Blank($3);
-		printf("start <- PACK FILE_SEP start\n");
-		$$ = $3 + 1;
+		Print_Blank($2);
+		printf("start <- PACK start\n");
+		$$ = $2 + 1;
 	}
     |	eval
 	{ 
@@ -279,7 +279,7 @@ expr:	for_stt
     |	class_stt
 	{
 		Print_Blank($1);
-		printf("expr <- class_decl\n");
+		printf("expr <- class_stt\n");
 		$$ = $1;
 	}
     |	epsilone
@@ -294,20 +294,20 @@ generic:	GREATER type LESS
 			$$ = $2;
 		}
 	;
-class_stt:	ABST CLASS ID OPEN class_id_decl CLOSE inheritance M_OPEN class_decl M_CLOSE
+class_stt:	ABST CLASS ID OPEN class_param CLOSE c_inheritance M_OPEN class_decl M_CLOSE
 	  	{
 			tmp_blank = ($5 > $7) ? $5 : $7;
 			tmp_blank = (tmp_blank > $9) ? tmp_blank : $9;
 			Print_Blank(tmp_blank);
-			printf("class_stt <- ABST CLASS ID OPEN class_id_decl CLOSE inheritance M_OPEN class_decl M_CLOSE\n");
+			printf("class_stt <- ABST CLASS ID OPEN param CLOSE c_inheritance M_OPEN class_decl M_CLOSE\n");
 			$$ = tmp_blank + 1;
 		}
-	|	CLASS ID OPEN class_id_decl CLOSE inheritance M_OPEN class_decl M_CLOSE
+	|	CLASS ID OPEN class_param CLOSE c_inheritance M_OPEN class_decl M_CLOSE
 	  	{
 			tmp_blank = ($4 > $6) ? $4 : $6;
 			tmp_blank = (tmp_blank > $8) ? tmp_blank : $8;
 			Print_Blank(tmp_blank);
-			printf("class_stt <- CLASS ID OPEN class_id_decl CLOSE inheritance M_OPEN class_decl M_CLOSE\n");
+			printf("class_stt <- CLASS ID OPEN param CLOSE c_inheritance M_OPEN class_decl M_CLOSE\n");
 			$$ = tmp_blank + 1;
 		}
 	|	INTER ID M_OPEN class_decl M_CLOSE
@@ -331,45 +331,34 @@ var_decl:	VAR id_decl_stt
 			$$ = $2 + 1;
 		}
 	;
-class_val_decl:	VAL id_decl
-	    	{
+class_keyword:	OVER
+	     	{
+			Print_Blank(0);
+			printf("class_keyword <- OVER\n");
+			$$ = 1;
+		}
+	|	ABST
+		{
+			Print_Blank(0);
+			printf("class_keyword <- ABST\n");
+			$$ = 1;
+		}
+	|	epsilone
+		{
+			/*empty*/
+		}
+	;	
+class_id_decl:	class_keyword var_decl
+	     	{
 			Print_Blank($2);
-			printf("class_val_decl <- VAL id_decl\n");
+			printf("class_id_decl <- class_keyword var_decl\n");
 			$$ = $2 + 1;
 		}
-	;
-class_var_decl:	VAR id_decl
-	    	{
+	|	class_keyword val_decl
+	     	{
 			Print_Blank($2);
-			printf("class_var_decl <- VAR id_decl\n");
+			printf("class_id_decl <- class_keyword val_decl\n");
 			$$ = $2 + 1;
-		}
-	;
-class_id_decl:	class_val_decl COMMA class_id_decl
-	     	{
-			tmp_blank = ($1 > $3) ? $1 : $3;
-			Print_Blank(tmp_blank);
-			printf("class_id_decl <- class_val_decl COMMA class_id_decl\n");
-			$$ = tmp_blank + 1;
-		}
-	|	class_var_decl COMMA class_id_decl
-	     	{
-			tmp_blank = ($1 > $3) ? $1 : $3;
-			Print_Blank(tmp_blank);
-			printf("class_id_decl <- class_var_decl COMMA class_id_decl\n");
-			$$ = tmp_blank + 1;
-		}
-	|	class_val_decl
-	     	{
-			Print_Blank($1);
-			printf("class_id_decl <- class_val_decl\n");
-			$$ = $1 + 1;
-		}
-	|	class_var_decl
-	     	{
-			Print_Blank($1);
-			printf( "class_id_decl <- class_var_Decl\n");
-			$$ = $1 + 1;
 		}
 	;
 class_decl:	class_id_decl class_decl
@@ -381,41 +370,48 @@ class_decl:	class_id_decl class_decl
 		}
 	|	class_method_decl class_decl
 	  	{
-			$$ = tmp_blank + 1;
 			tmp_blank = ($1 > $2) ? $1 : $2;
 			Print_Blank(tmp_blank);
 			printf("class_decl <- class_method_decl class_decl\n");
 			$$ = tmp_blank + 1;
+		}
+	|	class_id_decl
+	  	{
+			Print_Blank($1);
+			printf("class_decl <- class_id_decl\n");
+			$$ = $1 + 1;
+		}
+	|	class_method_decl
+	  	{
+			Print_Blank($1);
+			printf("class_decl <- class_method_decl\n");
+			$$ = $1 + 1;
+		}
+	;
+class_method_decl:	class_keyword fun_stt
+		 	{
+				tmp_blank = ($1 > $2) ? $1 : $2;
+				Print_Blank(tmp_blank);
+				printf("class_method_decl <- class_keyword fun_stt\n");
+				$$ = tmp_blank + 1;
+			}
+	;
+c_inheritance:	COLUMN inheritance
+	     	{
+			Print_Blank($2);
+			printf("c_inheritance <- COLUMN inheritance\n");
+			$$ = $2 + 1;
 		}
 	|	epsilone
 		{
 			/*empty*/
 		}
 	;
-class_method_decl:	ABST fun_stt
-		 	{
-				Print_Blank($2);
-				printf("class_method_decl <- ABST fun_stt\n");
-				$$ = $2 + 1;
-			}
-	|		OVER fun_stt
-		 	{
-				Print_Blank($2);
-				printf("class_method_decl <- OVER fun_stt\n");
-				$$ = $2 + 1;
-			}
-	|		fun_stt
-		 	{
-				Print_Blank($1);
-				printf("class_method_decl <- OVER fun_stt\n");
-				$$ = $1 + 1;
-			}
-	;
-inheritance:	COLUMN ID OPEN argument CLOSE inheritance
+inheritance:	fun_call COMMA inheritance
 	   	{
-			tmp_blank = ($4 > $6) ? $4 : $6;
+			tmp_blank = ($3 > $1) ? $3 : $1;
 			Print_Blank(tmp_blank);
-			printf("inheritance <- COLUMN ID OPEN argument CLOSE inheritance\n");
+			printf("inheritance <- fun_call COMMA inheritance\n");
 			$$ = tmp_blank + 1;
 		}
 	|	ID COMMA inheritance
@@ -424,28 +420,17 @@ inheritance:	COLUMN ID OPEN argument CLOSE inheritance
 			printf("inheritance <- ID COMMA inheritance\n");
 			$$ = $3 + 1;
 		}
-	|	ID OPEN argument CLOSE COMMA inheritance
-		{
-			tmp_blank = ($3 > $6) ? $3 : $6;
-			Print_Blank(tmp_blank);
-			printf("inheritance <- ID OPEN argument CLOSE COMMA inheritance\n");
-			$$ = tmp_blank + 1;
-		}
 	|	ID
 		{
 			Print_Blank(0);
 			printf("inheritance <- ID\n");
 			$$ = 1;
 		}
-	|	ID OPEN argument CLOSE
+	|	fun_call
 		{
-			Print_Blank($3);
-			printf("inheritance <- ID OPEN argument CLOSE\n");
-			$$ = $3 + 1;
-		}
-	|	epsilone
-		{
-			/*empty*/
+			Print_Blank($1);
+			printf("inheritance <- fun_call\n");
+			$$ = $1 + 1;
 		}
 	;
 lambda: DOT ID M_OPEN cal_sent M_CLOSE lambda
@@ -660,24 +645,42 @@ param:	ID COLUMN fun_type COMMA param
 		printf("param <- ID COLUMN fun_type\n");
 		$$ = $3 + 1;
 	}
-    |	VAL ID COLUMN fun_type COMMA param	
-	{
-		tmp_blank = ($4 > $6)? $4 : $6; 
-		Print_Blank(tmp_blank);
-		printf("param <- VAL ID COLUMN fun_type COMMA param\n");
-		$$ = tmp_blank + 1;
-	}
-    |	VAL ID COLUMN fun_type		
-	{
-		Print_Blank($4);
-		printf("param <- VAL ID COLUMN fun_type\n");
-		$$ = $4 + 1;
-	}
     |	epsilone
 	{
 		/*empty*/
 	}
     ;
+class_param:	VAL id_decl COMMA class_param
+	    	{
+			tmp_blank = ($2 > $4) ? $2 : $4;
+			Print_Blank(tmp_blank);
+			printf("class_param <- VAR id_decl COMMA class_param\n");
+			$$ = tmp_blank + 1;
+		}
+	|	VAR id_decl COMMA class_param
+	    	{
+			tmp_blank = ($2 > $4) ? $2 : $4;
+			Print_Blank(tmp_blank);
+			printf("class_param <- VAR id_decl COMMA class_param\n");
+			$$ = tmp_blank + 1;
+		}
+	|	VAL id_decl
+	    	{
+			Print_Blank($2);
+			printf("class_param <- VAL id_decl\n");
+			$$ = $2 + 1;
+		}
+	|	VAR id_decl
+	    	{
+			Print_Blank($2);
+			printf("class_param <- VAR id_decl\n");
+			$$ = $2 + 1;
+		}
+	|	epsilone
+		{
+			/*empty*/
+		}
+	;
 type:	INT	
     	{
 		Print_Blank(0);
@@ -765,17 +768,17 @@ fun_stt:  FUNC ID OPEN param CLOSE ret_type fun_body
 		$$ = tmp_blank + 1;
       	}
     ;
-ret_type: COLUMN fun_type 
-	{
-		Print_Blank($2);
-		printf("ret_type <- COLUMN fun_type\n");
-		//$$ = $2;
-		$$ = $2 + 1;
-	}
-    |	  COLUMN type QUESTION 
+ret_type: COLUMN type QUESTION 
 	{
 		Print_Blank($2);
 		printf("ret_type <- COLUMN type QUESTION\n");
+		//$$ = $2;
+		$$ = $2 + 1;
+	}
+    |	  COLUMN fun_type
+	{
+		Print_Blank($2);
+		printf("ret_type <- COLUMN fun_type\n");
 		//$$ = $2 + 20;
 		$$ = $2;
 	}
@@ -1250,7 +1253,7 @@ id_decl_stt:	id_decl EQUAL decl_content COMMA id_decl_stt
 			//if(tmp_idx == var_idx + 1)
 			//	var_idx = tmp_idx;
 			//else
-			//	  = "Error : Hole in array!\n;
+			//	printf("Error : Hole in array!\n");
 			$$ = tmp_blank + 1;
 		}
  	|	id_decl	
@@ -1286,13 +1289,7 @@ id_decl_stt:	id_decl EQUAL decl_content COMMA id_decl_stt
 			$$ = tmp_blank + 1;	
 		}
 	;
-decl_content:	cal_sent	
-	    	{
-			printf("decl_content <- cal_sent\n");
-			Print_Blank($1);
-			$$ = $1 + 1;
-		}
-	|	LISTOF OPEN list_content CLOSE	
+decl_content:	LISTOF OPEN list_content CLOSE	
 		{
 			printf("decl_content <- LISTOF OPEN list_content CLOSE\n");
 			Print_Blank($3);
@@ -1307,6 +1304,12 @@ decl_content:	cal_sent
 			//tmp_idx = Find_var_index($1, var_name);
 			//$$ = data[tmp_idx];
 			$$ = 1;	
+		}
+	|	condition
+		{
+			printf("decl_content <- condition\n");
+			Print_Blank($1);
+			$$ = $1;
 		}
 	;
 list_content:	STR COMMA list_content
@@ -1369,6 +1372,12 @@ argument:	cal_sent mul_argument
 			Print_Blank($2);
 			printf("argument <- STR mul_argument\n");
 			$$ = $2 + 1;
+		}
+	|	LISTOF OPEN list_content CLOSE mul_argument
+		{
+			tmp_blank = ($3 > $5) ? $3 : $5;
+			printf("argument <- LISTOF OPEN list_content CLOSE mul_argument\n");
+			$$ = tmp_blank + 1;
 		}
 	|	fun_call mul_argument
 		{
