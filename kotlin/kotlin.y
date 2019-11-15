@@ -1760,7 +1760,6 @@ list_content:	STR COMMA list_content
 			parent = make_nt_node("list_content");
 			child = make_token_node("STR");
 			Add_Child(parent, child);
-			Add_Last($1);
 	
 			$$ = parent;
 		}
