@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define GO_NEXT 1
+#define GO_NEXT -1
 #define MATCH 0
-#define NOT_MATCH -1
+#define NOT_MATCH 1
 
 int n1;
 int n2;
@@ -14,28 +14,28 @@ int countCommonStrings(char** strArr1, char ** strArr2)
 	int i = 0, j = 0, cmp, len = strlen(strArr1[0]), count = 0;
 	while(i < n1)
 	{
-		printf("%dth i while\n", i);
 		while(j < n2)
 		{
-			printf("%dth j while\n", j);
 
 			cmp = strcmp(strArr1[i], strArr2[j]);
 			
-			switch(cmp)
+			if(cmp == GO_NEXT)
 			{
-			case GO_NEXT:
 				i++;
-				j--;
-				break;
-			case MATCH:
-				count++;
-				j++;
-				i++;
-				break;
-			case NOT_MATCH:
-				j++;
 				break;
 			}
+			else if(cmp == MATCH)
+			{
+				i++;
+				j++;
+				count++;
+				break;
+			}
+			else
+			{
+				j++;
+			}
+
 			if(i >= n1)
 				return count;
 		}
