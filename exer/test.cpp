@@ -14,8 +14,10 @@ class BankAccount : public Account
 {
 public:
 	static int bte;
+	int e;
 
 public:
+	BankAccount(int z) : e(z) {}
 	int get_b() const { return bte; }
 };
 
@@ -24,9 +26,7 @@ int BankAccount::bte = 10000;
 
 int main(void)
 {
-	Account acc;
-	BankAccount bacc;
-	cout << acc.get() << endl;
-	cout << bacc.get() << endl;
-	cout << Account::bte << endl;
+	BankAccount bacc(1);
+
+	cout << bacc.get_b() << endl;
 }
