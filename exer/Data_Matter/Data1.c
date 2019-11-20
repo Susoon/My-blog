@@ -12,7 +12,6 @@ int n2;
 typedef struct trie_node
 {
 	struct trie_node ** children;
-	char alphabet;
 }node;
 
 node * root;
@@ -33,7 +32,6 @@ void Init_Trie()
 {
 	root = (node*)malloc(sizeof(node));
 	root -> children = (node**)malloc(sizeof(node*) * 26);
-	root -> alphabet = 0;
 }
 
 
@@ -75,7 +73,6 @@ void Add_Node(char alpha)
 	curr -> children[alpha - 'a'] = (node*)malloc(sizeof(node));
 	tmp = curr -> children[alpha - 'a'];
 	tmp -> children = (node**)malloc(sizeof(node*) * 26);
-	tmp -> alphabet = alpha;
 }
 
 
