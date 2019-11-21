@@ -9,42 +9,31 @@
 int n1;
 int n2;
 
-int compare(char * str1, char * str2, int len)
-{
-	int i = 0;
-
-	while(i < len && str1[i] == str2[i]) { i++; }
-
-	if(i == len)
-		return MATCH;
-	else if(str1[i] > str2[i])
-		return NOT_MATCH;
-	else
-		return GO_NEXT;
-}
-
 int countCommonStrings(char** strArr1, char ** strArr2)
 {
-	int i = 0, j = 0, cmp, len = strlen(strArr1[0]), count = 0;
+	int i = 0, j = 0, k = 0, cmp, len = strlen(strArr1[0]), count = 0;
 	while(i < n1 && j < n2)
 	{
-		cmp = compare(strArr1[i], strArr2[j], len);
-		
-		if(cmp == NOT_MATCH)
+		if(strArr1[i][k] > strArr2[j][k])
 		{
 			j++;
 		}
-		else if(cmp == GO_NEXT)
+		else if(strArr1[i][k] == strArr2[j][k])
 		{
-			i++;
+			k++;
+			if(k >= len)
+			{
+				count++;
+				i++;
+				j++;
+				k = 0;
+			}
 		}
 		else
 		{
+			k = 0;
 			i++;
-			j++;
-			count++;
 		}
-
 	}
 	return count;
 }
