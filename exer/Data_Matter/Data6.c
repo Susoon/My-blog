@@ -9,16 +9,16 @@ int idx;
 
 int Dense_Case(char** strArr1, char ** strArr2, int len, int start, int end)
 {
-	int i = 0, j = start, cmp, count = 0;
-	while(i < n1 && j < end)
+	int i = 0, j = 0, cmp, count = 0;
+	while(i < n1 && j < n2)
 	{
 		cmp = memcmp(strArr1[i], strArr2[j], len);
-	
-		if(cmp < 0)
+		
+		if(cmp > 0)
 		{
 			j++;
 		}
-		else if(cmp > 0)
+		else if(cmp < 0)
 		{
 			i++;
 		}
@@ -28,10 +28,10 @@ int Dense_Case(char** strArr1, char ** strArr2, int len, int start, int end)
 			j++;
 			count++;
 		}
+
 	}
 	return count;
 }
-
 int Binary_Search(char ** strArr, char * str, int len, int start, int end)
 {
 	int cmp;
