@@ -32,6 +32,7 @@ int Dense_Case(char** strArr1, char ** strArr2, int len, int start, int end)
 	}
 	return count;
 }
+
 int Binary_Search(char ** strArr, char * str, int len, int start, int end)
 {
 	int cmp;
@@ -71,9 +72,9 @@ int Normal_Case(char ** strArr1, char ** strArr2, int len, int start, int end)
 
 int countCommonStrings(char** strArr1, char ** strArr2)
 {
-	int len = strlen(strArr1[0]), start = 0, end = n2;
-	idx = 0;
+	int len = strlen(strArr1[0]), start = 0, middle = n1 / 2, end = n2;
 	
+	idx = 0;
 	Binary_Search(strArr2, strArr1[0], len, 0, n2);
 	start = idx;
 	
