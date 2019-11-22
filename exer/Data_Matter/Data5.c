@@ -5,30 +5,42 @@
 int n1;
 int n2;
 
+int idx;
+
 int Binary_Search(char ** strArr, char * str, int len, int start, int end);
 int countCommonStrings(char ** strArr1, char ** strArr2);
 
 int Binary_Search(char ** strArr, char * str, int len, int start, int end)
 {
+	int cmp;
 	if(start == end)
-		return memcmp(strArr[start], str, len);
+	{
+		cmp = memcmp(strArr[start], str, len);
+		if(cmp <= 0)
+			idx = start;
+		return cmp;
+	}
 	int middle = (start + end) / 2;
-	int cmp = memcmp(strArr[middle], str, len);
+	cmp = memcmp(strArr[middle], str, len);
 	if(cmp > 0)
 		return Binary_Search(strArr, str, len, start, middle);
 	else if(cmp < 0)
 		return Binary_Search(strArr, str, len, middle + 1, end);
 	else
+	{
+		idx = middle;
 		return 0;
+	}
 }
 
 int countCommonStrings(char** strArr1, char ** strArr2)
 {
 	int i = 0, len = strlen(strArr1[0]), count = 0;
-		
+	idx = 0;
+
 	while(i < n1)
 	{
-		if(Binary_Search(strArr2, strArr1[i], len, 0, n2) == 0)
+		if(Binary_Search(strArr2, strArr1[i], len, idx, n2) == 0)
 			count++;
 		i++;
 	}

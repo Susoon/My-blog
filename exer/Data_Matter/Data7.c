@@ -7,39 +7,44 @@ int n2;
 
 int idx;
 
-int Quaternary_Search(char ** strArr, char * str, int len, int start, int end);
+int Ternary_Search(char ** strArr, char * str, int len, int start, int end);
 int Normal_Case(char ** strArr1, char ** strArr2, int len);
 int countCommonStrings(char ** strArr1, char ** strArr2);
 
-int Quaternary_Search(char ** strArr, char * str, int len, int start, int end)
+int Ternary_Search(char ** strArr, char * str, int len, int start, int end)
 {
 	if(start == end)
 	{
 		idx = start;
 		return memcmp(strArr[start], str, len);
 	}
-	int term = (end - start) / 4;	
-	int middle[5] = {start, start + term, start + term * 2, start + 3 * term, end};
-	int cmp[5];
-	cmp[0] = start - 1; cmp[4] = end;
-	for(int i = 1; i < 4; i++)
+	int term = (end - start) / 3;	
+	int middle[4] = {start, start + term, start + term * 2, end};
+	int cmp[4];
+	cmp[0] = start - 1; cmp[3] = end;
+	for(int i = 1; i < 3; i++)
   	{	
 		cmp[i] = memcmp(strArr[middle[i]], str, len);
-		if(cmp[i] < 0)
-			return Quaternary_Search(strArr, str, len, middle[i - 1] + 1, middle[i]);
+		if(cmp[i] > 0)
+			return Ternary_Search(strArr, str, len, middle[i - 1] + 1, middle[i]);
+		if(cmp[i] == 0)
+		{
+			idx = cmp[i];
+			return 0;
+		}
 	}
-  	if(cmp[3] > 0)
-		return Quaternary_Search(strArr, str, len, middle[3] + 1, middle[4]);
+  	if(cmp[2] < 0)
+		return Ternary_Search(strArr, str, len, middle[2] + 1, middle[3]);
 	return 0;
 }
 
 int Normal_Case(char ** strArr1, char ** strArr2, int len)
 {
-	int i = 0, j = 0, count = 0;
-	while(i < n1 && j < n2)
+	int count = 0;
+	while(i < n1)
 	{
-		if(Quaternary_Search(strArr2, strArr1[i], len, idx, n2 - 1) == 0)
-		count++;
+		if(Ternary_Search(strArr2, strArr1[i], len, idx, n2) == 0)
+			count++;
 		i++;
 	}
 	return count;
@@ -47,7 +52,7 @@ int Normal_Case(char ** strArr1, char ** strArr2, int len)
 
 int countCommonStrings(char** strArr1, char ** strArr2)
 {
-	int i = 0, j = 0, cmp, len = strlen(strArr1[0]), count = 0;
+	int len = strlen(strArr1[0]);
 	idx = 0;
 
 	return Normal_Case(strArr1, strArr2, len);
