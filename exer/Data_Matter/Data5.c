@@ -9,6 +9,9 @@
 int n1;
 int n2;
 
+int Binary_Search(char ** strArr, char * str, int len, int start, int end);
+int countCommonStrings(char ** strArr1, char ** strArr2);
+
 int Binary_Search(char ** strArr, char * str, int len, int start, int end)
 {
 	if(start == end)
@@ -26,12 +29,12 @@ int Binary_Search(char ** strArr, char * str, int len, int start, int end)
 int countCommonStrings(char** strArr1, char ** strArr2)
 {
 	int i = 0, j = 0, cmp, len = strlen(strArr1[0]), count = 0;
-			
+		
 	while(i < n1 && j < n2)
 	{
 		if(Binary_Search(strArr2, strArr1[i], len, 0, n2) > 0)
 			count++;
-		i++;
+			i++;
 	}
 	return count;
 }
