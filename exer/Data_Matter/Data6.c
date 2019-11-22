@@ -7,41 +7,18 @@ int n2;
 
 int idx;
 
-int Binary_Search(char ** strArr, char * str, int len, int start, int end);
-int countCommonStrings(char ** strArr1, char ** strArr2);
-#define GO_NEXT -1
-#define MATCH 0
-#define NOT_MATCH 1
-
-int n1;
-int n2;
-
-int compare(char * str1, char * str2, int len)
-{
-	int i = 0;
-
-	while(i < len && str1[i] == str2[i]) { i++; }
-
-	if(i == len)
-		return MATCH;
-	else if(str1[i] > str2[i])
-		return NOT_MATCH;
-	else
-		return GO_NEXT;
-}
-
 int Dense_Case(char** strArr1, char ** strArr2, int len, int start, int end)
 {
 	int i = 0, j = start, cmp, count = 0;
-	while(i < n1 && j <= end)
+	while(i < n1 && j < end)
 	{
-		cmp = compare(strArr1[i], strArr2[j], len);
+		cmp = memcmp(strArr1[i], strArr2[j], len);
 	
-		if(cmp == NOT_MATCH)
+		if(cmp < 0)
 		{
 			j++;
 		}
-		else if(cmp == GO_NEXT)
+		else if(cmp > 0)
 		{
 			i++;
 		}
@@ -99,13 +76,15 @@ int countCommonStrings(char** strArr1, char ** strArr2)
 	
 	Binary_Search(strArr2, strArr1[0], len, 0, n2);
 	start = idx;
-
+	
+	idx = 0;
 	Binary_Search(strArr2, strArr1[n1 - 1], len, 0, n2);
-	end = idx;
+	if(idx != 0)
+		end = idx;
 
-	if((end - start)/n1 <= 100)
+	if((end - start)/n1 < 100)
 		return Dense_Case(strArr1, strArr2, len, start, end);
-	else
+  else
 		return Normal_Case(strArr1, strArr2, len, start, end);
 }
 
