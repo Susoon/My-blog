@@ -9,8 +9,8 @@ int idx;
 
 int Dense_Case(char** strArr1, char ** strArr2, int len, int start, int end)
 {
-	int i = 0, j = 0, cmp, count = 0;
-	while(i < n1 && j < n2)
+	int i = 0, j = start, cmp, count = 0;
+	while(i < n1 && j < end)
 	{
 		cmp = memcmp(strArr1[i], strArr2[j], len);
 		
@@ -83,7 +83,7 @@ int countCommonStrings(char** strArr1, char ** strArr2)
 		end = idx;
 
 	if((end - start)/n1 < 100)
-		return Dense_Case(strArr1, strArr2, len, start, end);
+		return Dense_Case(strArr1, strArr2, len, start, end + 1);
   else
 		return Normal_Case(strArr1, strArr2, len, start, end);
 }
