@@ -2,10 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define GO_NEXT -1
-#define MATCH 0
-#define NOT_MATCH 1
-
 int n1;
 int n2;
 
@@ -15,26 +11,26 @@ int countCommonStrings(char ** strArr1, char ** strArr2);
 int Binary_Search(char ** strArr, char * str, int len, int start, int end)
 {
 	if(start == end)
-		return memcmp(strArr[i], str, len);
+		return memcmp(strArr[start], str, len);
 	int middle = (start + end) / 2;
-	int cmp = memcmp(strArr[i], str, len);
+	int cmp = memcmp(strArr[middle], str, len);
 	if(cmp > 0)
-		return Binary_Search(strArr[i], str, len, start, middle);
+		return Binary_Search(strArr, str, len, start, middle);
 	else if(cmp < 0)
-		return Binary_Search(strArr[i], str, len, middle + 1, end);
+		return Binary_Search(strArr, str, len, middle + 1, end);
 	else
-		return 1;
+		return 0;
 }
 
 int countCommonStrings(char** strArr1, char ** strArr2)
 {
-	int i = 0, j = 0, cmp, len = strlen(strArr1[0]), count = 0;
+	int i = 0, len = strlen(strArr1[0]), count = 0;
 		
-	while(i < n1 && j < n2)
+	while(i < n1)
 	{
-		if(Binary_Search(strArr2, strArr1[i], len, 0, n2) > 0)
+		if(Binary_Search(strArr2, strArr1[i], len, 0, n2) == 0)
 			count++;
-			i++;
+		i++;
 	}
 	return count;
 }
