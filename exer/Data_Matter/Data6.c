@@ -9,78 +9,54 @@
 int n1;
 int n2;
 
+int idx;
+
+int Quaternary_Search(char ** strArr, char * str, int len, int start, int end);
 int Normal_Case(char ** strArr1, char ** strArr2, int len);
-int Binary_Search(char ** strArr, char * str, int len, int start, int end);
-int Upset_Case(char ** strArr1, char ** strArr2, int len);
-int Binary_Search_DP(char ** strArr, char * str, int * dp, int len, int start, int end);
 int countCommonStrings(char ** strArr1, char ** strArr2);
+
+int Quaternary_Search(char ** strArr, char * str, int len, int start, int end)
+{
+	if(start == end)
+	{
+		idx = start;
+		return memcmp(strArr[start], str, len);
+	}
+	int tmp = (start + end) / 2, term = tmp - start;	
+	int middle[3] = {tmp, tmp + term, tmp + 2 * term};
+	int cmp[5];
+	cmp[0] = start - 1; cmp[4] = end;
+       	for(int i = 1; i < 4; i++)
+	{	
+		cmp[i] = memcmp(strArr[middle[i]], str, len);
+		if(cmp[i] > 0)
+			return Quaternary_Search(strArr, str, len, cmp[i - 1] + 1, cmp[i]);
+	}
+	for(int i = 1; i < 3; i++)
+	{
+		if(cmp[i] < 0)
+			return Quaternary_Search(strArr, str, len, cmp[i] + 1, cmp[i + 1]);
+	}
+}
 
 int Normal_Case(char ** strArr1, char ** strArr2, int len)
 {
 	int i = 0, j = 0, count = 0;
 	while(i < n1 && j < n2)
 	{
-		if(Binary_Search(strArr2, strArr1[i], len, 0, n2) == 0)
+		if(Binary_Search(strArr2, strArr1[i], len, idx, n2) == 0)
 			count++;
 		i++;
 	}
 	
 	return count;
-}
-
-int Binary_Search(char ** strArr, char * str, int len, int start, int end)
-{
-	if(start == end)
-		return memcmp(strArr[start], str, len);
-	int middle = (start + end) / 2;
-	int cmp = memcmp(strArr[middle], str, len);
-	if(cmp > 0)
-		return Binary_Search(strArr, str, len, start, middle);
-	else if(cmp < 0)
-		return Binary_Search(strArr, str, len, middle + 1, end);
-	else
-		return 0;
-}
-
-int Upset_Case(char ** strArr1, char ** strArr2, int len)
-{
-	int * dp = (int*)calloc(n2, sizeof(int));
-	int i = 0, j = 0, count = 0;
-	
-	while(i < n1 && j < n2)
-	{
-		if(Binary_Search_DP(strArr2, strArr1[i], dp, len, 0, n2) == 0)
-			count++;
-		i++;
-	}
-
-	return count;
-}
-
-int Binary_Search_DP(char ** strArr, char * str, int * dp, int len, int start, int end)
-{
-	if(start == end)
-		return memcmp(strArr[start], str, len);
-	int middle = (start + end) / 2;
-	int cmp;
-	
-	if(dp[middle] >= 0)
-		cmp = memcmp(strArr[middle], str, len);
-	else
-		cmp = dp[middle];
-
-	if(cmp > 0)
-		return Binary_Search(strArr, str, len, start, middle);
-	else if(cmp < 0)
-		return Binary_Search(strArr, str, len, middle + 1, end);
-	else
-		return 0;
 }
 
 int countCommonStrings(char** strArr1, char ** strArr2)
 {
 	int i = 0, j = 0, cmp, len = strlen(strArr1[0]), count = 0;
-	
+	idx = 0;
+
 	if(n2 / n1 <= 50)
 		return Normal_Case(strArr1, strArr2, len);
 	
