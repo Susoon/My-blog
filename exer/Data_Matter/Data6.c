@@ -15,6 +15,12 @@ int Quaternary_Search(char ** strArr, char * str, int len, int start, int end);
 int Normal_Case(char ** strArr1, char ** strArr2, int len);
 int countCommonStrings(char ** strArr1, char ** strArr2);
 
+int idx;
+
+int Quaternary_Search(char ** strArr, char * str, int len, int start, int end);
+int Normal_Case(char ** strArr1, char ** strArr2, int len);
+int countCommonStrings(char ** strArr1, char ** strArr2);
+
 int Quaternary_Search(char ** strArr, char * str, int len, int start, int end)
 {
 	if(start == end)
@@ -22,21 +28,19 @@ int Quaternary_Search(char ** strArr, char * str, int len, int start, int end)
 		idx = start;
 		return memcmp(strArr[start], str, len);
 	}
-	int tmp = (start + end) / 2, term = tmp - start;	
-	int middle[3] = {tmp, tmp + term, tmp + 2 * term};
+	int term = (end - start) / 4;	
+	int middle[5] = {start, start + term, start + term * 2, start + 3 * term, end};
 	int cmp[5];
 	cmp[0] = start - 1; cmp[4] = end;
-       	for(int i = 1; i < 4; i++)
-	{	
+	for(int i = 1; i < 4; i++)
+  	{	
 		cmp[i] = memcmp(strArr[middle[i]], str, len);
-		if(cmp[i] > 0)
-			return Quaternary_Search(strArr, str, len, cmp[i - 1] + 1, cmp[i]);
-	}
-	for(int i = 1; i < 3; i++)
-	{
 		if(cmp[i] < 0)
-			return Quaternary_Search(strArr, str, len, cmp[i] + 1, cmp[i + 1]);
+		return Quaternary_Search(strArr, str, len, middle[i - 1] + 1, middle[i]);
 	}
+  	if(cmp[3] > 0)
+		return Quaternary_Search(strArr, str, len, middle[3] + 1, middle[4]);
+	return 0;
 }
 
 int Normal_Case(char ** strArr1, char ** strArr2, int len)
@@ -44,11 +48,10 @@ int Normal_Case(char ** strArr1, char ** strArr2, int len)
 	int i = 0, j = 0, count = 0;
 	while(i < n1 && j < n2)
 	{
-		if(Binary_Search(strArr2, strArr1[i], len, idx, n2) == 0)
-			count++;
+		if(Quaternary_Search(strArr2, strArr1[i], len, idx, n2 - 1) == 0)
+		count++;
 		i++;
 	}
-	
 	return count;
 }
 
@@ -57,10 +60,7 @@ int countCommonStrings(char** strArr1, char ** strArr2)
 	int i = 0, j = 0, cmp, len = strlen(strArr1[0]), count = 0;
 	idx = 0;
 
-	if(n2 / n1 <= 50)
-		return Normal_Case(strArr1, strArr2, len);
-	
-	return Upset_Case(strArr1, strArr2, len);
+	return Normal_Case(strArr1, strArr2, len);
 }
 
 int main(void)
