@@ -7,10 +7,10 @@ int n2;
 
 int idx;
 
-int Dense_Case(char** strArr1, char ** strArr2, int len, int start, int end)
+int Dense_Case(char** strArr1, char ** strArr2, int len, int start1, int end1, int start2, int end2)
 {
-	int i = 0, j = start, cmp, count = 0;
-	while(i < n1 && j < end)
+	int i = start1, j = start2, cmp, count = 0;
+	while(i < end1 && j < end2)
 	{
 		cmp = memcmp(strArr1[i], strArr2[j], len);
 		
@@ -69,10 +69,28 @@ int Normal_Case(char ** strArr1, char ** strArr2, int len, int start1, int end1,
 	return count;
 }
 
+int Recursive_Counting(char ** strArr1, char** strArr2, int len, int start1, int end1, int start2, int end2)
+{
+	int count = 0;
+	if(height == 10)
+	{
+		if((end2 - start2) / (end1 - start1) < 50)
+			return Dense_Case(strArr1, strArr2, len, start1, end1, start2, end2);
+		else
+			return Normal_Case(strArr1, strArr2, len, start1, end1, start2, end2);
+	}
+	static int height = 0;
+	height++;
+	count += Recursive_Counting(strArr1, strArr2, len, start1, (start1 + end1) / 2, start2, end2);
+	count += Recursive_Counting(strArr1, strArr2, len (start1 + end1) / 2 + 1, end1, start2, end2);
+	height--;
+
+	return count;
+}
+
 int countCommonStrings(char** strArr1, char ** strArr2)
 {
-	int len = strlen(strArr1[0]), start = 0, middle = n1 / 2, end = n2, term, count = 0, start1, end1;
-	int checkpoint[100];
+	int len = strlen(strArr1[0]), start = 0, end = n2;
 	idx = 0;
 	Binary_Search(strArr2, strArr1[0], len, 0, n2);
 	start = idx;
@@ -82,24 +100,7 @@ int countCommonStrings(char** strArr1, char ** strArr2)
 	Binary_Search(strArr2, strArr1[n1 - 1], len, 0, n2);
 	if(idx != 0)
 		end = idx;
-	checkpoint[99] = end;
-	
-	term = (end - start) / 100;
-
-	for(int i = 1; i < 100; i++)
-	{
-		idx = 0;
-		Binary_Search(strArr2, strArr1[start + term * i], len, start, end);
-		checkpoint[i] = idx;
-		if((checkpoint[i] - checkpoint[i - 1]) / term < 100)
-			count += Dense_Case(strArr1, strArr2, len, checkpoint[i - 1], checkpoint[i] + 1);
-		else
-		{
-			start1 = start + term * (i - 1);
-			end1 = start + term * i;
-			count += Normal_Case(strArr1, strArr2, len, start1, end1, checkpoint[i - 1], checkpoint[i]);
-		}
-	}
+	return Recursive_Counting(strArr1, strArr2, len, 0, n1, start, end);
 }
 		
 int main(void)
