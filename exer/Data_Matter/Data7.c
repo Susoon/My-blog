@@ -4,9 +4,6 @@
 
 int n1;
 int n2;
-
-int idx;
-
 int Dense_Case(char** strArr1, char ** strArr2, int len, int start1, int end1, int start2, int end2)
 {
 	int i = start1, j = start2, cmp, count = 0;
@@ -38,9 +35,7 @@ int Binary_Search(char ** strArr, char * str, int len, int start, int end)
 	int cmp;
 	if(start == end)
 	{
-		cmp = memcmp(strArr[end], str, len);
-		idx = end;
-		return cmp;
+		return end;
 	}
 	int middle = (start + end) / 2;
 	cmp = memcmp(strArr[middle], str, len);
@@ -50,18 +45,17 @@ int Binary_Search(char ** strArr, char * str, int len, int start, int end)
 		return Binary_Search(strArr, str, len, middle + 1, end);
 	else
 	{
-		idx = middle;
-		return 0;
+		return middle;
 	}
 }
 
 int Normal_Case(char ** strArr1, char ** strArr2, int len, int start1, int end1, int start2, int end2)
 {
-	int i = start1, count = 0;
-	idx = start2;
+	int i = start1, count = 0, idx;
 	while(i < end1)
 	{
-		if(Binary_Search(strArr2, strArr1[i], len, idx, end2) == 0)
+		idx = Binary_Search(strArr2, strArr1[i], len, idx, end2);
+		if(memcmp(strArr1[i], strArr2[idx], len) == 0)
 			count++;
 		i++;
 	}
@@ -81,19 +75,11 @@ int Recursive_Counting(char ** strArr1, char** strArr2, int len, int start1, int
 			return Normal_Case(strArr1, strArr2, len, start1, end1, start2, end2);
 	}
 	height++;
-
-	idx = start1;
-	Binary_Search(strArr2, strArr1[start1], len, start2, end2);
-	tmp_s = idx;
 	
+	tmp_s = Binary_Search(strArr2, strArr1[start1], len, start2, end2);
+	tmp_m = Binary_Search(strArr2, strArr1[middle], len, start2, end2);
+	tmp_e = Binary_Search(strArr2, strArr1[end1], len, start2, end2);
 
-	idx = start1;
-	Binary_Search(strArr2, strArr1[middle], len, start2, end2);
-	tmp_m = idx;
-
-	idx = start1;
-	Binary_Search(strArr2, strArr1[end1], len, start2, end2);
-	tmp_e = idx;
 	
 	count += Recursive_Counting(strArr1, strArr2, len, start1, middle, tmp_s, tmp_m);
 	count += Recursive_Counting(strArr1, strArr2, len, middle + 1, end1, tmp_m, tmp_e);
@@ -105,14 +91,10 @@ int Recursive_Counting(char ** strArr1, char** strArr2, int len, int start1, int
 int countCommonStrings(char** strArr1, char ** strArr2)
 {
 	int len = strlen(strArr1[0]), start = 0, end = n2;
-	idx = 0;
-	Binary_Search(strArr2, strArr1[0], len, 0, n2);
-	start = idx;
+	start = Binary_Search(strArr2, strArr1[0], len, 0, n2);
 	
-	idx = 0;
-	Binary_Search(strArr2, strArr1[n1 - 1], len, 0, n2);
-	if(idx != 0)
-		end = idx;
+	end = Binary_Search(strArr2, strArr1[n1 - 1], len, 0, n2);
+	
 	return Recursive_Counting(strArr1, strArr2, len, 0, n1, start, end);
 }
 		
