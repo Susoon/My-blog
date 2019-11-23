@@ -55,13 +55,13 @@ int Binary_Search(char ** strArr, char * str, int len, int start, int end)
 	}
 }
 
-int Normal_Case(char ** strArr1, char ** strArr2, int len, int start, int end)
+int Normal_Case(char ** strArr1, char ** strArr2, int len, int start1, int end1, int start2, int end2)
 {
-	int i = 0, count = 0;
-	idx = start;
-	while(i < n1)
+	int i = start1, count = 0;
+	idx = start2;
+	while(i < end1)
 	{
-		if(Binary_Search(strArr2, strArr1[i], len, idx, end) == 0)
+		if(Binary_Search(strArr2, strArr1[i], len, idx, end2) == 0)
 			count++;
 		i++;
 	}
@@ -71,7 +71,7 @@ int Normal_Case(char ** strArr1, char ** strArr2, int len, int start, int end)
 
 int countCommonStrings(char** strArr1, char ** strArr2)
 {
-	int len = strlen(strArr1[0]), start = 0, middle = n1 / 2, end = n2, term, count = 0;
+	int len = strlen(strArr1[0]), start = 0, middle = n1 / 2, end = n2, term, count = 0, start1, end1;
 	int checkpoint[100];
 	idx = 0;
 	Binary_Search(strArr2, strArr1[0], len, 0, n2);
@@ -94,7 +94,11 @@ int countCommonStrings(char** strArr1, char ** strArr2)
 		if((checkpoint[i] - checkpoint[i - 1]) / term < 100)
 			count += Dense_Case(strArr1, strArr2, len, checkpoint[i - 1], checkpoint[i] + 1);
 		else
-			count += Normal_Case(strArr1, strArr2, len, checkpoint[i - 1], checkpoint[i]);
+		{
+			start1 = start + term * (i - 1);
+			end1 = start + term * i;
+			count += Normal_Case(strArr1, strArr2, len, start1, end1, checkpoint[i - 1], checkpoint[i]);
+		}
 	}
 }
 		
