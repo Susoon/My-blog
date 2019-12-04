@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "stod.h"
 #include "kotlin.tab.h"
+#include "stod.h"
 
 int line_num = 1;
 
@@ -32,6 +32,7 @@ IS	is
 IN	in
 DOWNTO	downTo
 STEP	step
+SETOF	setOf
 LISTOF	listOf
 LIST	List
 INT	(I|i)nt
@@ -54,15 +55,16 @@ COMMENT_LONG	[/][*]([a-zA-Z0-9_ \t\r\$.,;&!?\(\)\{\}\+\-\*\"'\`=><\:\/\n\:])*[*]
 
 %%
 
-{L_NUMBER} { yylval.l_var = stod(yytext);
+{L_NUMBER} { yylval.s_var = yytext;
 	return L_NUMBER;
 }
 
-{NUMBER} { yylval.d_var = stod(yytext);
+{NUMBER} { yylval.s_var = yytext;
 	return NUMBER;
 }
 
 {STR} { yylval.s_var = yytext;
+	yylval.s_var = alltoneed(yylval.s_var);
 	return STR;
 }
 
@@ -72,10 +74,14 @@ COMMENT_LONG	[/][*]([a-zA-Z0-9_ \t\r\$.,;&!?\(\)\{\}\+\-\*\"'\`=><\:\/\n\:])*[*]
 {EOL}	{ line_num++;
 }
 
-{IMPORT} { return IMPORT;
+{PACK}	{ yylval.s_var = yytext;
+	  yylval.s_var = iptoneed(yylval.s_var);
+	return PACK;
 }
 
-{PACK}	{ return PACK;
+{IMPORT} { yylval.s_var = yytext;
+	  yylval.s_var = iptoneed(yylval.s_var);
+	return IMPORT;
 }
 
 {FUNC} { return FUNC;
@@ -123,16 +129,19 @@ COMMENT_LONG	[/][*]([a-zA-Z0-9_ \t\r\$.,;&!?\(\)\{\}\+\-\*\"'\`=><\:\/\n\:])*[*]
 {STEP}	{ return STEP;
 }
 
+{SETOF}	{ return SETOF;
+}
+
 {LISTOF} { return LISTOF;
 }
 
 {LIST}	{ return LIST;
 }
 
-{INT}	{ return INT;
+{INT}	{  return INT;
 }
 
-{LONG}	{ return LONG;
+{LONG}	{  return LONG;
 }
 
 {FLOAT} { return FLOAT;
@@ -144,34 +153,35 @@ COMMENT_LONG	[/][*]([a-zA-Z0-9_ \t\r\$.,;&!?\(\)\{\}\+\-\*\"'\`=><\:\/\n\:])*[*]
 {STRING} { return STRING;
 }
 
-{CHAR}	{ return CHAR;
+{CHAR}	{  return CHAR;
 }
 
-{BOOL}	{ return BOOL;
+{BOOL}	{  return BOOL;
 }
 
-{ANY}	{ return ANY;
+{ANY}	{  return ANY;
 }
 
-{UNIT}	{ return UNIT;
+{UNIT}	{  return UNIT;
 }
 
-{MAIN}	{ return MAIN;
+{MAIN}	{  return MAIN;
 }
 
-{ABST}	{ return ABST;
+{ABST}	{  return ABST;
 }
 
-{CLASS}	{ return CLASS;
+{CLASS}	{  return CLASS;
 }
 
-{INTER}	{ return INTER;
+{INTER}	{  return INTER;
 }
 
-{OVER}	{ return OVER;
+{OVER}	{  return OVER;
 }
 
-{ID} { yylval.s_var = yytext;	
+{ID} { yylval.s_var = yytext;
+       yylval.s_var = _Find_name(yylval.s_var);	
 	return ID;
 }
 
@@ -183,112 +193,112 @@ COMMENT_LONG	[/][*]([a-zA-Z0-9_ \t\r\$.,;&!?\(\)\{\}\+\-\*\"'\`=><\:\/\n\:])*[*]
 		return COMMENT_LONG;
 }
 
-")"	{ return CLOSE;
+")"	{  return CLOSE;
 }
 
-"("	{ return OPEN;
+"("	{  return OPEN;
 }
 
-"+"	{ return PLUS; 
+"+"	{  return PLUS; 
 }
 
-"-"	{ return MINUS;
+"-"	{  return MINUS;
 }
 
-"*"	{ return MULT; 
+"*"	{  return MULT; 
 }
 
-"/"	{ return DIV;
+"/"	{  return DIV;
 }
 
-"="	{ return EQUAL;
+"="	{  return EQUAL;
 }
 
-".."	{ return DOUBLEDOT;
+".."	{  return DOUBLEDOT;
 }
 
-"."	{ return DOT;
+"."	{  return DOT;
 }
 
-"{"	{ return M_OPEN;
+"{"	{  return M_OPEN;
 }
 
-"}"	{ return M_CLOSE;
+"}"	{  return M_CLOSE;
 }
 
-":"	{ return COLUMN;
+":"	{  return COLUMN;
 }
 
-">"	{ return LESS;
+">"	{  return LESS;
 }
 
-"<"	{ return GREATER;
+"<"	{  return GREATER;
 }
 
-","	{ return COMMA;
+","	{  return COMMA;
 }
 
-"$"	{ return CALL;
+"$"	{  return CALL;
 }
 
-"?"	{ return QUESTION;
+"?"	{  return QUESTION;
 }
 
-"!"	{ return NOT;
+"!"	{  return NOT;
 }
 
-"&"	{ return B_AND;
+"&"	{  return B_AND;
 }
 
-"|"	{ return B_OR;
+"|"	{  return B_OR;
 }
 
-"^"	{ return B_XOR;
+"^"	{  return B_XOR;
 }
 
-"+="	{ return E_PLUS;
+"+="	{  return E_PLUS;
 }
 
-"-="	{ return E_MINUS;
+"-="	{  return E_MINUS;
 }
 
-"*="	{ return E_MULT;
+"*="	{  return E_MULT;
 }
 
-"/="	{ return E_DIV;
+"/="	{  return E_DIV;
 }
 
-">="	{ return E_LESS;
+">="	{  return E_LESS;
 }
 
-"<=" 	{ return E_GREATER;
+"<=" 	{  return E_GREATER;
 }
 
-"&&"	{ return AND;
+"&&"	{  return AND;
 }
 
-"||"	{ return OR;
+"||"	{  return OR;
 }
 
-"<<"	{ return L_SHIFT;
+"<<"	{  return L_SHIFT;
 }
 
-">>"	{ return R_SHIFT;
+">>"	{  return R_SHIFT;
 }
 
-"=="	{ return SAME;
+"=="	{  return SAME;
 }
 
-"!=" 	{ return NOT_SAME;
+"!=" 	{  return NOT_SAME;
 }
 
-"->"	{ return ARROW;
+"->"	{  return ARROW;
 }
 
-"++"	{ return INC;
+"++"	{  return INC;
 }
 
-"--"	{ return DEC;
+"--"	{  return DEC;
 }
 
 .	{  printf("%lf\n", (double)yytext[0]);

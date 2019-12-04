@@ -31,7 +31,7 @@ int main()
 {
     complex c1(1, -2), c2(2, 1), c3;
     cout<<"c1: "<<c1<<endl;
-	cout<<"c2: "<<c2<<endl;
+    cout<<"c2: "<<c2<<endl;
     c3 = c1-c2;
     cout<<"c3: "<<c3<<endl;
     c3 = c1+c2;
