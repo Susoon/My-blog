@@ -1,6 +1,6 @@
 #Makefiel for expression calculator
 
-TARGET=kotlin
+TARGET=Kotlin2Java
 CFG=kotlin
 LEX_SRC=$(CFG).l
 YACC_SRC=$(CFG).y

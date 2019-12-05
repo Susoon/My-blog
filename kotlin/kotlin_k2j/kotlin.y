@@ -6,6 +6,8 @@
 #include "find_data.h"
 #include "parse_tree.h"
 
+#define NOT_SPACE -20
+#define NEED_SPACE -10
 #define NEED -1
 #define NOT_NEED -2
 #define NEED_NOW -3
@@ -44,7 +46,7 @@ char * class_name[1000] = { 0 };
 int tmp_type = 0, tmp_idx = 0;
 double tmp_data;
 char * tmp_str;
-
+char * main_class;
 
 NODE * parent;
 NODE * child;
@@ -182,7 +184,7 @@ goal:	start
 		root -> parent = NULL;
 		root -> token_type = NOT_NEED;
 		root -> type = Not_defined;
-		child = make_token_node("import java.util.*;\n");
+		child = make_token_node("import java.util.*;\n", NOT_SPACE);
 		Add_Child(root, child, NOT_NEED);
 		Add_Last($1, NOT_NEED);
 		Print_Tree(root, 0);
@@ -193,7 +195,7 @@ start:	IMPORT start
 		parent = make_nt_node();
 		tmp_node = $2;
 		parent -> type = tmp_node -> type;
-		child = make_token_node($1);
+		child = make_token_node($1, NOT_SPACE);
 		Add_Child(parent, child, NEED_NOW);
 		Add_Last($2, NOT_NEED);
 
@@ -204,7 +206,7 @@ start:	IMPORT start
 		parent = make_nt_node();
 		tmp_node = $2;
 		parent -> type = tmp_node -> type;
-		child = make_token_node($1);
+		child = make_token_node($1, NOT_SPACE);
 		Add_Child(parent, child, NEED_NOW);
 		Add_Last($2, NOT_NEED);
 		
@@ -215,14 +217,14 @@ start:	IMPORT start
 		parent = make_nt_node();
 		tmp_node = $1;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("public class");
+		child = make_token_node("public class", NEED_SPACE);
 		Add_Child(parent, child, NOT_NEED);
-		child = make_class_node("output", NULL);
+		child = make_class_node(main_class, NULL);
 		Add_Last(child, NOT_NEED);
-		child = make_token_node("{");
+		child = make_token_node("{\n", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($1, NOT_NEED);
-		child = make_token_node("}");
+		child = make_token_node("}\n", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 
 		$$ = parent; 
@@ -372,9 +374,9 @@ expr:	for_stt
 			tmp_idx = Var_Save($1, 0, String, id_name, data, id_type); 
 		child = make_id_node(id_name[tmp_idx], id_type[tmp_idx], 0);
 		Add_Child(parent, child, NOT_NEED);
-		child = make_token_node("=");
+		child = make_token_node("=", NEED_SPACE);
 		Add_Last(child, NOT_NEED);
-		child = make_token_node($3);
+		child = make_token_node($3, NOT_SPACE);
 		Add_Last(child, NEED);
 
 		$$ = parent;
@@ -412,12 +414,12 @@ expr:	for_stt
 generic:	GREATER type LESS
 		{
 			parent = make_nt_node();
-			child = make_token_node("<");
+			child = make_token_node("<", NOT_SPACE);
 			tmp_node = $2;
 			child -> type = tmp_node -> type;
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
-			child = make_token_node(">");
+			child = make_token_node(">", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 	
 			$$ = parent;
@@ -427,9 +429,9 @@ class_stt:	ABST CLASS ID OPEN class_param CLOSE c_inheritance M_OPEN class_decl 
 	  	{
 			parent = make_nt_node();
 			parent -> type = Class;
-			child = make_token_node("abstract");
+			child = make_token_node("abstract", NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
-			child = make_token_node("class");
+			child = make_token_node("class", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			tmp_idx = Class_type_Save($3, class_type); 
 			if(tmp_idx == -1)
@@ -439,16 +441,16 @@ class_stt:	ABST CLASS ID OPEN class_param CLOSE c_inheritance M_OPEN class_decl 
 			}
 			child = make_class_type_node(class_type[tmp_idx]);
 			Add_Last(child, NOT_NEED);
-			child = make_token_node("(");	
+			child = make_token_node("(", NOT_SPACE);	
 			Add_Last(child, NOT_NEED);
 			Add_Last($5, NOT_NEED);
-			child = make_token_node(")");
+			child = make_token_node(")", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($7, NOT_NEED);
-			child = make_token_node("{");
+			child = make_token_node("{\n", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($9, NOT_NEED);
-			child = make_token_node("}");
+			child = make_token_node("}\n", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 	
 			$$ = parent;
@@ -457,7 +459,7 @@ class_stt:	ABST CLASS ID OPEN class_param CLOSE c_inheritance M_OPEN class_decl 
 	  	{
 			parent = make_nt_node();
 			parent -> type = Class;
-			child = make_token_node("class");
+			child = make_token_node("class", NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			tmp_idx = Class_type_Save($2, class_type); 
 			if(tmp_idx == -1)
@@ -467,16 +469,16 @@ class_stt:	ABST CLASS ID OPEN class_param CLOSE c_inheritance M_OPEN class_decl 
 			}
 			child = make_class_type_node(class_type[tmp_idx]);
 			Add_Last(child, NOT_NEED);
-			child = make_token_node("(");
+			child = make_token_node("(", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($4, NOT_NEED);
-			child = make_token_node(")");
+			child = make_token_node(")", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($6, NOT_NEED);
-			child = make_token_node("{");
+			child = make_token_node("{\n", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($8, NOT_NEED);
-			child = make_token_node("}");
+			child = make_token_node("}\n", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 	
 			$$ = parent;
@@ -485,7 +487,7 @@ class_stt:	ABST CLASS ID OPEN class_param CLOSE c_inheritance M_OPEN class_decl 
 	  	{
 			parent = make_nt_node();
 			parent -> type = Class;
-			child = make_token_node("interface");
+			child = make_token_node("interface", NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			tmp_idx = Class_type_Save($2, class_type); 
 			if(tmp_idx == -1)
@@ -495,10 +497,10 @@ class_stt:	ABST CLASS ID OPEN class_param CLOSE c_inheritance M_OPEN class_decl 
 			}
 			child = make_class_type_node(class_type[tmp_idx]);
 			Add_Last(child, NOT_NEED);
-			child = make_token_node("{");
+			child = make_token_node("{\n", NOT_NEED);
 			Add_Last(child, NOT_NEED);
 			Add_Last($4, NOT_NEED);
-			child = make_token_node("}");
+			child = make_token_node("}\n", NOT_NEED);
 			Add_Last(child, NOT_NEED);
 	
 			$$ = parent;
@@ -509,7 +511,7 @@ val_decl:	VAL id_decl_stt
 			parent = make_nt_node();
 			tmp_node = $2;
 			parent -> type = tmp_node -> type;
-			child = make_token_node("final");
+			child = make_token_node("final", NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
 
@@ -520,7 +522,7 @@ var_decl:	VAR id_decl_stt
 	    	{
 			parent = make_nt_node();
 			parent -> type = tmp_node -> type;
-			child = make_token_node("");
+			child = make_token_node("", NOT_NEED);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
 
@@ -531,7 +533,7 @@ class_keyword:	OVER
 	     	{
 			parent = make_nt_node();
 			parent -> type = Classtype;
-			child = make_token_node("override");
+			child = make_token_node("", NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 
 			$$ = parent;
@@ -540,7 +542,7 @@ class_keyword:	OVER
 		{
 			parent = make_nt_node();
 			parent -> type = Classtype;
-			parent = make_token_node("abstract");
+			parent = make_token_node("abstract", NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 
 			$$ = parent;
@@ -647,7 +649,7 @@ c_inheritance:	COLUMN inheritance
 			parent = make_nt_node();
 			tmp_node = $2;
 			parent -> type = tmp_node -> type;
-			child = make_token_node(":");
+			child = make_token_node(":", NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
 		
@@ -672,7 +674,7 @@ inheritance:	fun_call COMMA inheritance
 				tmp_node = $1;
 			parent -> type = tmp_node -> type;
 			Add_Child(parent, $1, NOT_NEED);
-			child = make_token_node(",");
+			child = make_token_node(",", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 
@@ -691,7 +693,7 @@ inheritance:	fun_call COMMA inheritance
 			}
 			child = make_class_type_node(class_type[tmp_idx]);
 			Add_Child(parent, child, NOT_NEED);
-			child = make_token_node(",");
+			child = make_token_node(",", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 
@@ -726,15 +728,15 @@ lambda: DOT ID M_OPEN cal_sent M_CLOSE lambda
 		if(tmp_type >= tmp_node -> type)
 			tmp_node = $4;
 		parent -> type = tmp_node -> type;
-		child = make_token_node(".");
+		child = make_token_node(".", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		tmp_idx = Fun_Save($2, Unit, fun_name, fun_type);
 		child = make_fun_node(fun_name[tmp_idx], fun_type[tmp_idx]);
 		Add_Last(child, NOT_NEED);
-		child = make_token_node("{");
+		child = make_token_node("\n{", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($4, NOT_NEED);
-		child = make_token_node("}");
+		child = make_token_node("}\n", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($6, NOT_NEED);
 
@@ -753,7 +755,7 @@ assign:	EQUAL
       	{
 		parent = make_nt_node();
 		parent -> type = Not_defined;
-		child = make_token_node("=");
+		child = make_token_node("=", NEED_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 
 		$$ = parent;
@@ -762,7 +764,7 @@ assign:	EQUAL
       	{
 		parent = make_nt_node();
 		parent -> type = Not_defined;
-		child = make_token_node("+=");
+		child = make_token_node("+=", NEED_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 
 		$$ = parent;
@@ -771,7 +773,7 @@ assign:	EQUAL
       	{
 		parent = make_nt_node();
 		parent -> type = Not_defined;
-		child = make_token_node("-=");
+		child = make_token_node("-=", NEED_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 
 		$$ = parent;
@@ -780,7 +782,7 @@ assign:	EQUAL
       	{
 		parent = make_nt_node();
 		parent -> type = Not_defined;
-		child = make_token_node("*=");
+		child = make_token_node("*=", NEED_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 
 		$$ = parent;
@@ -789,7 +791,7 @@ assign:	EQUAL
       	{
 		parent = make_nt_node();
 		parent -> type = Not_defined;
-		child = make_token_node("/=");
+		child = make_token_node("/=", NEED_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 
 		$$ = parent;
@@ -800,15 +802,15 @@ main_fun: FUNC MAIN OPEN CLOSE fun_body
 		parent = make_nt_node();
 		tmp_node = $5;
 		parent -> type = Unit;
-		child = make_token_node("public static void");
+		child = make_token_node("public static void", NEED_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		child = make_fun_node("main", Unit);
 		Add_Last(child, NOT_NEED);
-		child = make_token_node("(");
+		child = make_token_node("(", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
-		child = make_token_node("String[] args");
+		child = make_token_node("String[] args", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
-		child = make_token_node(")");
+		child = make_token_node(")", NEED_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($5, NOT_NEED);
 	
@@ -825,7 +827,7 @@ cal_sent: cal_sent PLUS term
 			tmp_node = $1;
 		parent -> type = tmp_node -> type;
 		Add_Child(parent, $1, NOT_NEED);
-		child = make_token_node("+");
+		child = make_token_node("+", NEED_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($3, NOT_NEED);
 
@@ -841,7 +843,7 @@ cal_sent: cal_sent PLUS term
 			tmp_node = $1;
 		parent -> type = tmp_node -> type;
 		Add_Child(parent, $1, NOT_NEED);
-		child = make_token_node("-");
+		child = make_token_node("-", NEED_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($3, NOT_NEED);
 
@@ -867,7 +869,7 @@ term:	term MULT signed_factor
 			tmp_node = $1;
 		parent -> type = tmp_node -> type;
 		Add_Child(parent, $1, NOT_NEED);
-		child = make_token_node("*");
+		child = make_token_node("*", NEED_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($3, NOT_NEED);
 
@@ -883,7 +885,7 @@ term:	term MULT signed_factor
 			tmp_node = $1;
 		parent -> type = tmp_node -> type;
 		Add_Child(parent, $1, NOT_NEED);
-		child = make_token_node("/");
+		child = make_token_node("/", NEED_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($3, NOT_NEED);
 
@@ -904,7 +906,7 @@ signed_factor:	PLUS factor
 			parent = make_nt_node();
 			tmp_node = $2;
 			parent -> type = tmp_node -> type;
-			child = make_token_node("+");
+			child = make_token_node("+", NOT_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
 
@@ -915,7 +917,7 @@ signed_factor:	PLUS factor
 			parent = make_nt_node();
 			tmp_node = $2;
 			parent -> type = tmp_node -> type;
-			child = make_token_node("-");
+			child = make_token_node("-", NOT_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
 
@@ -943,7 +945,7 @@ factor: NUMBER
 				tmp_type = Double;
 		}	
 		parent -> type = tmp_type;
-		child = make_token_node($1);
+		child = make_token_node($1, NEED_SPACE);
 		child -> type = tmp_type;
 		Add_Child(parent, child, NOT_NEED);
 		
@@ -953,7 +955,7 @@ factor: NUMBER
       	{
 		parent = make_nt_node();
 		parent -> type = Long;
-		child = make_token_node($1);
+		child = make_token_node($1, NEED_SPACE);
 		child -> type = tmp_type;
 		Add_Child(parent, child, NOT_NEED);
 
@@ -962,10 +964,10 @@ factor: NUMBER
     |	ID 	
 	{ 
 		parent = make_nt_node();
-		parent -> type = Not_defined;
 		tmp_idx = Find_var_index($1, id_name);
 		if(tmp_idx == -1)
 			tmp_idx = Var_Save($1, 0, Not_defined, id_name, data, id_type);
+		parent -> type = id_type[tmp_idx];
 		child = make_id_node(id_name[tmp_idx], id_type[tmp_idx], 0);
 		child -> type = id_type[tmp_idx];
 		Add_Child(parent, child, NOT_NEED);
@@ -977,10 +979,13 @@ factor: NUMBER
 		parent = make_nt_node();
 		tmp_node = $3;
 		parent -> type = tmp_node -> type;
-		tmp_idx = Var_Save($1, 0, tmp_node -> type, id_name, data, id_type);
+		tmp_idx = Find_var_index($1, id_name);
+		if(tmp_idx == -1)
+			tmp_idx = Var_Save($1, 0, tmp_node -> type, id_name, data, id_type);
 		child = make_id_node(id_name[tmp_idx], id_type[tmp_idx], 0);
+		child -> space = NOT_SPACE;
 		Add_Child(parent, child, NOT_NEED);
-		child = make_token_node(".");
+		child = make_token_node(".", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($3, NOT_NEED);
 
@@ -989,14 +994,18 @@ factor: NUMBER
     |	ID DOT ID
 	{ 
 		parent = make_nt_node();
-		tmp_idx = Var_Save($1, 0, Not_defined, id_name, data, id_type);
+		tmp_idx = Find_var_index($1, id_name);
+		if(tmp_idx == -1)
+			tmp_idx = Var_Save($1, 0, Not_defined, id_name, data, id_type);
 		parent -> type = id_type[tmp_idx];
-		printf("%s %d\n", $1, id_type[tmp_idx]);
 		child = make_id_node(id_name[tmp_idx], id_type[tmp_idx], 0);
+		child -> space = NOT_SPACE;
 		Add_Child(parent, child, NOT_NEED);
-		child = make_token_node(".");
+		child = make_token_node(".", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
-		tmp_idx = Var_Save($1, 0, Not_defined, id_name, data, id_type);
+		tmp_idx = Find_var_index($3, id_name);
+		if(tmp_idx == -1)
+			tmp_idx = Var_Save($3, 0, Not_defined, id_name, data, id_type);
 		child = make_id_node(id_name[tmp_idx], id_type[tmp_idx], 0);
 		Add_Last(child, NOT_NEED);
 
@@ -1009,7 +1018,7 @@ factor: NUMBER
 		tmp_idx = Find_var_index($1, id_name);
 		child = make_id_node(id_name[tmp_idx], Int, 0);
 		Add_Child(parent, child, NOT_NEED);
-		child = make_token_node("++");
+		child = make_token_node("++", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 
 		$$ = parent;
@@ -1021,7 +1030,7 @@ factor: NUMBER
 		tmp_idx = Find_var_index($1, id_name);
 		child = make_id_node(id_name[tmp_idx], Int, 0);
 		Add_Child(parent, child, NOT_NEED);
-		child = make_token_node("--");
+		child = make_token_node("--", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 
 		$$ = parent;
@@ -1030,7 +1039,7 @@ factor: NUMBER
 	{ 
 		parent = make_nt_node();
 		parent -> type = Int;
-		child = make_token_node("++");
+		child = make_token_node("++", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		tmp_idx = Find_var_index($2, id_name);
 		child = make_id_node(id_name[tmp_idx], Int, 0);
@@ -1042,7 +1051,7 @@ factor: NUMBER
 	{ 
 		parent = make_nt_node();
 		parent -> type = Int;
-		child = make_token_node("--");
+		child = make_token_node("--", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		tmp_idx = Find_var_index($2, id_name);
 		child = make_id_node(id_name[tmp_idx], Int, 0);
@@ -1055,10 +1064,10 @@ factor: NUMBER
 		parent = make_nt_node();
 		tmp_node = $2;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("(");
+		child = make_token_node("(", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		Add_Last($2, NOT_NEED);
-		child = make_token_node(")");
+		child = make_token_node(")", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 
 		$$ = parent;
@@ -1076,7 +1085,7 @@ factor: NUMBER
 	{ 
 		parent = make_nt_node();
 		parent -> type = Int;
-		child = make_token_node("null");
+		child = make_token_node("null", NOT_SPACE);
 		child -> type = Int;
 		Add_Child(parent, child, NOT_NEED);
 
@@ -1096,7 +1105,7 @@ param:	ID COLUMN fun_type COMMA param
 		child = make_id_node(id_name[tmp_idx], tmp_node -> type, 0);
 		parent -> type = tmp_node -> type;	
 		Add_Last(child, NOT_NEED);
-		child = make_token_node(",");
+		child = make_token_node(",", NEED_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($5, NOT_NEED);
 		
@@ -1132,10 +1141,10 @@ class_param:	VAL id_decl COMMA class_param
 			if(tmp_type >= tmp_node -> type)
 				tmp_node = $2;
 			parent -> type = tmp_node -> type;
-			child = make_token_node("final");
+			child = make_token_node("final", NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
-			child = make_token_node(",");
+			child = make_token_node(",", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($4, NOT_NEED);
 
@@ -1150,10 +1159,10 @@ class_param:	VAL id_decl COMMA class_param
 			if(tmp_type >= tmp_node -> type)
 				tmp_node = $2;
 			parent -> type = tmp_node -> type;
-			child = make_token_node("");
+			child = make_token_node("", NOT_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
-			child = make_token_node(",");
+			child = make_token_node(",", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($4, NOT_NEED);
 
@@ -1164,7 +1173,7 @@ class_param:	VAL id_decl COMMA class_param
 			parent = make_nt_node();
 			tmp_node = $2;
 			parent -> type = tmp_node -> type;
-			child = make_token_node("final");
+			child = make_token_node("final", NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
 
@@ -1175,7 +1184,7 @@ class_param:	VAL id_decl COMMA class_param
 			parent = make_nt_node();
 			tmp_node = $2;
 			parent -> type = tmp_node -> type;
-			child = make_token_node("");
+			child = make_token_node("", NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
 
@@ -1194,7 +1203,7 @@ type:	INT
     	{
 		parent = make_nt_node();
 		parent -> type = Int;
-		child = make_token_node("int");
+		child = make_token_node("int", NEED_SPACE);
 		child -> type = Int;
 		Add_Child(parent, child, NOT_NEED);
 		
@@ -1204,7 +1213,7 @@ type:	INT
     	{
 		parent = make_nt_node();
 		parent -> type = Long;
-		child = make_token_node("long");
+		child = make_token_node("long", NEED_SPACE);
 		child -> type = Long;
 		Add_Child(parent, child, NOT_NEED);
 		
@@ -1214,7 +1223,7 @@ type:	INT
 	{ 
 		parent = make_nt_node();
 		parent -> type = Float;
-		child = make_token_node("float");
+		child = make_token_node("float", NEED_SPACE);
 		child -> type = Float;
 		Add_Child(parent, child, NOT_NEED);
 		
@@ -1224,7 +1233,7 @@ type:	INT
 	{ 
 		parent = make_nt_node();
 		parent -> type = Double;
-		child = make_token_node("double");
+		child = make_token_node("double", NEED_SPACE);
 		child -> type = Double;
 		Add_Child(parent, child, NOT_NEED);
 		
@@ -1234,7 +1243,7 @@ type:	INT
 	{ 
 		parent = make_nt_node();
 		parent -> type = String;
-		child = make_token_node("String");
+		child = make_token_node("String", NEED_SPACE);
 		child -> type = String;
 		Add_Child(parent, child, NOT_NEED);
 		
@@ -1244,7 +1253,7 @@ type:	INT
 	{ 
 		parent = make_nt_node();
 		parent -> type = Char;
-		child = make_token_node("char");
+		child = make_token_node("char", NEED_SPACE);
 		child -> type = Char;
 		Add_Child(parent, child, NOT_NEED);
 		
@@ -1254,7 +1263,7 @@ type:	INT
 	{
 		parent = make_nt_node();
 		parent -> type = Bool;
-		child = make_token_node("bool");
+		child = make_token_node("bool", NEED_SPACE);
 		child -> type = Bool;
 		Add_Child(parent, child, NOT_NEED);
 		
@@ -1266,7 +1275,7 @@ type:	INT
 		parent = make_nt_node();
 		tmp_node = $2;
 		parent -> type = tmp_node -> type + List;
-		child = make_token_node("LIST");
+		child = make_token_node("List", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		
 		$$ = parent;
@@ -1286,7 +1295,7 @@ fun_type:	type
 		{ 
 			parent = make_nt_node();
 			parent -> type = Unit;
-			child = make_token_node("void");
+			child = make_token_node("void", NEED_SPACE);
 			child -> type = Unit;
 			Add_Child(parent, child, NOT_NEED);
 			child -> type = Unit;
@@ -1297,7 +1306,7 @@ fun_type:	type
 		{ 
 			parent = make_nt_node();
 			parent -> type = Any;
-			child = make_token_node("Object");
+			child = make_token_node("Object", NEED_SPACE);
 			child -> type = Any;
 			Add_Child(parent, child, NOT_NEED);
 			child -> type = Any;
@@ -1308,23 +1317,25 @@ fun_type:	type
 fun_stt:  FUNC ID OPEN param CLOSE ret_type fun_body 
        	{
 		parent = make_nt_node();
-		child = make_token_node("public static");
+		child = make_token_node("public static", NEED_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		tmp_node = $6;
 		if(tmp_node -> type == Not_defined)
 		{
 			tmp_node = $4;
+			if(tmp_node -> type == Not_defined)
+				tmp_node = $7;
 		}
-		child = make_token_node(ttos(tmp_node -> type));
+		child = make_token_node(ttos(tmp_node -> type), NEED_SPACE);
 		parent -> type = tmp_node -> type;
 		Add_Last(child, NOT_NEED);
 		tmp_idx = Fun_Save($2, tmp_node -> type, fun_name, fun_type);
 		child = make_fun_node(fun_name[tmp_idx], fun_type[tmp_idx]);
 		Add_Last(child, NOT_NEED);
-		child = make_token_node("(");
+		child = make_token_node("(", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($4, NOT_NEED);
-		child = make_token_node(")");
+		child = make_token_node(")", NEED_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($7, NOT_NEED);
 
@@ -1364,13 +1375,13 @@ fun_body: M_OPEN eval RETURN cal_sent M_CLOSE
 		parent = make_nt_node();
 		tmp_node = $4;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("{");
+		child = make_token_node("{\n", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		Add_Last($2, NOT_NEED);
-		child = make_token_node("return");
+		child = make_token_node("return", NEED_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($4, NEED);
-		child = make_token_node("}");
+		child = make_token_node("}\n", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 
 		$$ = parent;
@@ -1379,12 +1390,12 @@ fun_body: M_OPEN eval RETURN cal_sent M_CLOSE
 	{
 		parent = make_nt_node();
 		parent -> type = Unit;
-		child = make_token_node("{");
+		child = make_token_node("{\n", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		Add_Last($2, NOT_NEED);
-		child = make_token_node("return");
+		child = make_token_node("return", NEED_SPACE);
 		Add_Last(child, NEED);
-		child = make_token_node("}");
+		child = make_token_node("}\n", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 
 		$$ = parent;
@@ -1393,10 +1404,10 @@ fun_body: M_OPEN eval RETURN cal_sent M_CLOSE
 	{ 
 		parent = make_nt_node();
 		parent -> type = Unit;
-		child = make_token_node("{");
+		child = make_token_node("{\n", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		Add_Last($2, NOT_NEED);
-		child = make_token_node("}");
+		child = make_token_node("}\n", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 
 		$$ = parent;
@@ -1406,12 +1417,12 @@ fun_body: M_OPEN eval RETURN cal_sent M_CLOSE
 		parent = make_nt_node();
 		tmp_node = $2;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("{");
+		child = make_token_node("{\n", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
-		child = make_token_node("return");
+		child = make_token_node("return", NEED_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($2, NEED);
-		child = make_token_node("}");
+		child = make_token_node("}\n", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 	
 		$$ = parent;
@@ -1421,10 +1432,10 @@ fun_body: M_OPEN eval RETURN cal_sent M_CLOSE
 		parent = make_nt_node();
 		tmp_node = $2;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("{");
+		child = make_token_node("{\n", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		Add_Last($2, NOT_NEED);
-		child = make_token_node("}");
+		child = make_token_node("}\n", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 	
 		$$ = parent;
@@ -1434,10 +1445,10 @@ fun_body: M_OPEN eval RETURN cal_sent M_CLOSE
 		parent = make_nt_node();
 		tmp_node = $2;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("{");
+		child = make_token_node("{\n", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		Add_Last($2, NOT_NEED);
-		child = make_token_node("}");
+		child = make_token_node("}\n", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 	
 		$$ = parent;
@@ -1456,17 +1467,17 @@ while_stt: WHILE OPEN condition CLOSE M_OPEN loop_body M_CLOSE
 		parent = make_nt_node();
 		tmp_node = $6;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("while");
+		child = make_token_node("while", NEED_SPACE);
 		Add_Child(parent, child, NOT_NEED);
-		child = make_token_node("(");
+		child = make_token_node("(", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($3, NOT_NEED);
-		child = make_token_node(")");
+		child = make_token_node(")", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
-		child = make_token_node("{");
+		child = make_token_node("{\n", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($6, NOT_NEED);
-		child = make_token_node("}");
+		child = make_token_node("}\n", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 
 		$$ = parent;
@@ -1477,17 +1488,17 @@ for_stt: FOR OPEN condition CLOSE M_OPEN loop_body M_CLOSE
 		parent = make_nt_node();
 		tmp_node = $6;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("for");
+		child = make_token_node("for", NEED_SPACE);
 		Add_Child(parent, child, NOT_NEED);
-		child = make_token_node("(");
+		child = make_token_node("(", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($3, NOT_NEED);
-		child = make_token_node(")");
+		child = make_token_node(")", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
-		child = make_token_node("{");
+		child = make_token_node("{\n", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($6, NOT_NEED);
-		child = make_token_node("}");
+		child = make_token_node("}\n", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 
 		$$ = parent;
@@ -1508,10 +1519,10 @@ when_body: when_id ARROW when_id when_body
 		parent = make_nt_node();
 		tmp_node = $3;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("case");
+		child = make_token_node("case", NOT_SPACE);
 		Add_Child(parent ,child, NOT_NEED);
 		Add_Last($1, NOT_NEED);
-		child = make_token_node(":");
+		child = make_token_node(":", NEED_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($3, NEED);
 		Add_Last($4, NOT_NEED);
@@ -1523,9 +1534,9 @@ when_body: when_id ARROW when_id when_body
 		parent = make_nt_node();
 		tmp_node = $3;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("default");
+		child = make_token_node("default", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
-		child = make_token_node(":");
+		child = make_token_node(":", NEED_SPACE);
 		Add_Last(child, NEED);
 		Add_Last($3, NOT_NEED);
 
@@ -1536,10 +1547,10 @@ when_body: when_id ARROW when_id when_body
 		parent = make_nt_node();
 		tmp_node = $3;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("case");
+		child = make_token_node("case", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		Add_Last($1, NOT_NEED);
-		child = make_token_node(":");
+		child = make_token_node(":", NEED_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($3, NEED);
 		Add_Last($4, NOT_NEED);
@@ -1560,7 +1571,7 @@ when_id: STR
 	{
 		parent = make_nt_node();
 		parent -> type = String;
-		child = make_token_node($1);
+		child = make_token_node($1, NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 
 		$$ = parent;
@@ -1579,7 +1590,7 @@ when_condition:	IS type
 		{
 			parent = make_nt_node();
 			parent -> type = Bool;
-			child = make_token_node("instance of");
+			child = make_token_node("instance of", NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
 
@@ -1589,9 +1600,9 @@ when_condition:	IS type
 		{
 			parent = make_nt_node();
 			parent -> type = Bool;
-			child = make_token_node("!");
+			child = make_token_node("!", NOT_SPACE);
 			Add_Child(parent, child, NOT_NEED);
-			child = make_token_node("instance of");
+			child = make_token_node("instance of", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 
@@ -1602,7 +1613,7 @@ when_condition:	IS type
 			parent = make_nt_node();
 			parent -> type = Bool;
 			Add_Child(parent, $1, NOT_NEED);
-			child = make_token_node(":");
+			child = make_token_node(":", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 			Add_Last($4, NOT_NEED);
@@ -1614,9 +1625,9 @@ when_condition:	IS type
 			parent = make_nt_node();
 			parent -> type = Bool;
 			Add_Child(parent, $1, NOT_NEED);
-			child = make_token_node("!");
+			child = make_token_node("!", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
-			child = make_token_node(":");
+			child = make_token_node(":", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($4, NOT_NEED);
 			Add_Last($5, NOT_NEED);
@@ -1629,19 +1640,19 @@ when_stt:  WHEN OPEN ID CLOSE M_OPEN when_body M_CLOSE
 		parent = make_nt_node();
 		tmp_node = $6;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("switch");
+		child = make_token_node("switch", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
-		child = make_token_node("(");
+		child = make_token_node("(", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		tmp_idx = Var_Save($3, 0, Not_defined, id_name, data, id_type);
 		child = make_id_node(id_name[tmp_idx], id_type[tmp_idx], 0);
 		Add_Last(child, NOT_NEED);
-		child = make_token_node(")");
+		child = make_token_node(")", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
-		child = make_token_node("{");
+		child = make_token_node("{\n", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($6, NOT_NEED);
-		child = make_token_node("}");	
+		child = make_token_node("}\n", NOT_SPACE);	
 		Add_Last(child, NOT_NEED);
 		
 		$$ = parent;
@@ -1651,12 +1662,12 @@ when_stt:  WHEN OPEN ID CLOSE M_OPEN when_body M_CLOSE
 		parent = make_nt_node();
 		tmp_node = $3;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("switch");
+		child = make_token_node("switch", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
-		child = make_token_node("{");
+		child = make_token_node("{\n", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($3, NOT_NEED);
-		child = make_token_node("}");	
+		child = make_token_node("}\n", NOT_SPACE);	
 		Add_Last(child, NOT_NEED);
 
 		$$ = parent;
@@ -1667,7 +1678,7 @@ if_stt:	IF noelse
 		parent = make_nt_node();
 		tmp_node = $2;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("if");
+		child = make_token_node("if", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		Add_Last($2, NOT_NEED);
 
@@ -1678,7 +1689,7 @@ if_stt:	IF noelse
 		parent = make_nt_node();
 		tmp_node = $2;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("if");
+		child = make_token_node("if", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		Add_Last($2, NOT_NEED);
 
@@ -1690,10 +1701,10 @@ noelse:	OPEN condition CLOSE cf
 		parent = make_nt_node();
 		tmp_node = $4;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("(");
+		child = make_token_node("(", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		Add_Last($2, NOT_NEED);
-		child = make_token_node(")");
+		child = make_token_node(")", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($4, NOT_NEED);
 
@@ -1705,10 +1716,10 @@ withelse: OPEN condition CLOSE cf
 		parent = make_nt_node();
 		tmp_node = $4;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("(");
+		child = make_token_node("(", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		Add_Last($2, NOT_NEED);
-		child = make_token_node(")");
+		child = make_token_node(")", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($4, NOT_NEED);
 
@@ -1719,10 +1730,10 @@ withelse: OPEN condition CLOSE cf
 		parent = make_nt_node();
 		tmp_node = $4;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("(");
+		child = make_token_node("(", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		Add_Last($2, NOT_NEED);
-		child = make_token_node(")");
+		child = make_token_node(")", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($4, NOT_NEED);
 		Add_Last($5, NOT_NEED);
@@ -1735,12 +1746,12 @@ else_part: ELSEIF OPEN condition CLOSE cf else_part
 		parent = make_nt_node();
 		tmp_node = $5;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("else if");
+		child = make_token_node("else if", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
-		child = make_token_node("(");
+		child = make_token_node("(", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($3, NOT_NEED);
-		child = make_token_node(")");
+		child = make_token_node(")", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($5, NOT_NEED);
 		Add_Last($6, NOT_NEED);
@@ -1752,7 +1763,7 @@ else_part: ELSEIF OPEN condition CLOSE cf else_part
 		parent = make_nt_node();
 		tmp_node = $2;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("else");
+		child = make_token_node("else", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		Add_Last($2, NOT_NEED);
 
@@ -1772,10 +1783,10 @@ cf:	 M_OPEN cf_body M_CLOSE
 		parent = make_nt_node();
 		tmp_node = $2;
 		parent -> type = tmp_node -> type;
-		child = make_token_node("{");
+		child = make_token_node("{\n", NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 		Add_Last($2, NOT_NEED);
-		child = make_token_node("}");
+		child = make_token_node("}\n", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 
 		$$ = parent;
@@ -1796,7 +1807,7 @@ cf_body: eval RETURN cal_sent
 		tmp_node = $3;
 		parent -> type = tmp_node -> type;
 		Add_Child(parent, $1, NOT_NEED);
-		child = make_token_node("return");
+		child = make_token_node("return", NEED_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($3, NEED);
 		
@@ -1807,7 +1818,7 @@ cf_body: eval RETURN cal_sent
 		parent = make_nt_node();
 		parent -> type = Unit;
 		Add_Child(parent, $1, NOT_NEED);
-		child = make_token_node("return");
+		child = make_token_node("return", NEED_SPACE);
 		Add_Last(child, NEED);
 		
 		$$ = parent;
@@ -1825,7 +1836,7 @@ com: 	COMMENT
      	{
 		parent = make_nt_node();
 		parent -> type = Unit;
-		child = make_token_node($1);
+		child = make_token_node($1, NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 
 		$$ = parent;
@@ -1834,7 +1845,7 @@ com: 	COMMENT
 	{ 
 		parent = make_nt_node();
 		parent -> type = Unit;
-		child = make_token_node($1);
+		child = make_token_node($1, NOT_SPACE);
 		Add_Child(parent, child, NOT_NEED);
 
 		$$ = parent;
@@ -1853,7 +1864,7 @@ condition  :	is_condition
 			parent = make_nt_node();
 			parent -> type = Bool;
 			Add_Child(parent, $1, NOT_NEED);
-			child = make_token_node("==");
+			child = make_token_node("==", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 	
@@ -1864,7 +1875,7 @@ condition  :	is_condition
 			parent = make_nt_node();
 			parent -> type = Bool;
 			Add_Child(parent, $1, NOT_NEED);
-			child = make_token_node("<");
+			child = make_token_node("<", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 	
@@ -1875,7 +1886,7 @@ condition  :	is_condition
 			parent = make_nt_node();
 			parent -> type = Bool;
 			Add_Child(parent, $1, NOT_NEED);
-			child = make_token_node(">");
+			child = make_token_node(">", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 	
@@ -1886,7 +1897,7 @@ condition  :	is_condition
 			parent = make_nt_node();
 			parent -> type = Bool;
 			Add_Child(parent, $1, NOT_NEED);
-			child = make_token_node("<=");
+			child = make_token_node("<=", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 	
@@ -1897,7 +1908,7 @@ condition  :	is_condition
 			parent = make_nt_node();
 			parent -> type = Bool;
 			Add_Child(parent, $1, NOT_NEED);
-			child = make_token_node(">=");
+			child = make_token_node(">=", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 	
@@ -1908,7 +1919,7 @@ condition  :	is_condition
 			parent = make_nt_node();
 			parent -> type = Bool;
 			Add_Child(parent, $1, NOT_NEED);
-			child = make_token_node("&&");
+			child = make_token_node("&&", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 	
@@ -1919,7 +1930,7 @@ condition  :	is_condition
 			parent = make_nt_node();
 			parent -> type = Bool;
 			Add_Child(parent, $1, NOT_NEED);
-			child = make_token_node("||");
+			child = make_token_node("||", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 	
@@ -1930,7 +1941,7 @@ condition  :	is_condition
 			parent = make_nt_node();
 			parent -> type = Bool;
 			Add_Child(parent, $1, NOT_NEED);
-			child = make_token_node("!=");
+			child = make_token_node("!=", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 	
@@ -1951,10 +1962,10 @@ condition  :	is_condition
 			parent -> type = Bool;
 			tmp_node = $3;
 			tmp_str = ttos(tmp_node -> type - List);
-			child = make_token_node(tmp_str);
+			child = make_token_node(tmp_str, NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($1, NOT_NEED);
-			child = make_token_node(":");
+			child = make_token_node(":", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 			Add_Last($4, NOT_NEED);
@@ -1967,12 +1978,12 @@ condition  :	is_condition
 			parent -> type = Bool;
 			tmp_node = $4;
 			tmp_str = ttos(tmp_node -> type - List);
-			child = make_token_node(tmp_str);
+			child = make_token_node(tmp_str, NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($1, NOT_NEED);
-			child = make_token_node("!");
+			child = make_token_node("!", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
-			child = make_token_node(":");
+			child = make_token_node(":", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($4, NOT_NEED);
 			Add_Last($5, NOT_NEED);
@@ -1987,7 +1998,7 @@ is_condition :	ID IS type
 			tmp_idx = Var_Save($1, 0, Not_defined, id_name, data, id_type);
 			child = make_id_node(id_name[tmp_idx], id_type[tmp_idx], 0);
 			Add_Child(parent, child, NOT_NEED);
-			child = make_token_node("instance of");
+			child = make_token_node("instance of", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 
@@ -2000,9 +2011,9 @@ is_condition :	ID IS type
 			tmp_idx = Var_Save($1, 0, Not_defined, id_name, data, id_type);
 			child = make_id_node(id_name[tmp_idx], id_type[tmp_idx], 0);
 			Add_Child(parent, child, NOT_NEED);
-			child = make_token_node("!");
+			child = make_token_node("!", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
-			child = make_token_node("instance of");
+			child = make_token_node("instance of", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($4, NOT_NEED);
 
@@ -2013,7 +2024,7 @@ range	:	DOT cal_sent step_count
       		{
 			parent = make_nt_node();
 			parent -> type = Bool;
-			child = make_token_node(".");
+			child = make_token_node(".", NOT_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
 			Add_Last($3, NOT_NEED);
@@ -2024,7 +2035,7 @@ range	:	DOT cal_sent step_count
 		{
 			parent = make_nt_node();
 			parent -> type = Bool;
-			child = make_token_node("downTo");
+			child = make_token_node("downTo", NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
 			Add_Last($3, NOT_NEED);
@@ -2045,7 +2056,7 @@ step_count:	STEP factor
 			parent = make_nt_node();
 			tmp_node = $2;
 			parent -> type = tmp_node -> type;
-			child = make_token_node("step");
+			child = make_token_node("step", NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
 	
@@ -2065,7 +2076,7 @@ withelse:	ELSEIF expr withelse
 			parent = make_nt_node();
 			tmp_node = $2;
 			parent -> type = tmp_node -> type;
-			child = make_token_node("else if");
+			child = make_token_node("else if", NOT_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
 			Add_Last($3, NOT_NEED);
@@ -2077,7 +2088,7 @@ withelse:	ELSEIF expr withelse
 			parent = make_nt_node();
 			tmp_node = $2;
 			parent -> type = tmp_node -> type;
-			child = make_token_node("else");
+			child = make_token_node("else", NOT_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
 
@@ -2124,13 +2135,13 @@ id_decl_stt:	id_decl EQUAL decl_content COMMA id_decl_stt
 			tmp_node = $1;
 			tmp_idx = Find_var_index(tmp_node -> child -> name, id_name);
 			id_type[tmp_idx] = parent -> type;
-			child = make_token_node(tmp_str);
+			child = make_token_node(tmp_str, NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($1, NOT_NEED);
-			child = make_token_node("=");
+			child = make_token_node("=", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
-			child = make_token_node(",");
+			child = make_token_node(",", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($5, NOT_NEED);
 		
@@ -2153,7 +2164,7 @@ id_decl_stt:	id_decl EQUAL decl_content COMMA id_decl_stt
 				tmp_node = $3;
 			parent -> type = tmp_node -> type;
 			Add_Child(parent, $1, NOT_NEED);
-			child = make_token_node(",");
+			child = make_token_node(",", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 		
@@ -2170,10 +2181,10 @@ id_decl_stt:	id_decl EQUAL decl_content COMMA id_decl_stt
 			tmp_node = $1;
 			tmp_idx = Find_var_index(tmp_node -> child -> name, id_name);
 			id_type[tmp_idx] = parent -> type;
-			child = make_token_node(tmp_str);
+			child = make_token_node(tmp_str, NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($1, NOT_NEED);
-			child = make_token_node("=");
+			child = make_token_node("=", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 		
@@ -2185,12 +2196,12 @@ decl_content:	SETOF OPEN list_content CLOSE
 			parent = make_nt_node();
 			tmp_node = $3;
 			parent -> type = List + tmp_node -> type;
-			child = make_token_node("Set.of");
+			child = make_token_node("Set.of", NOT_SPACE);
 			Add_Child(parent, child, NOT_NEED);
-			child = make_token_node("(");
+			child = make_token_node("(", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
-			child = make_token_node(")");
+			child = make_token_node(")", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 
 			$$ = parent;
@@ -2200,12 +2211,12 @@ decl_content:	SETOF OPEN list_content CLOSE
 			parent = make_nt_node();
 			tmp_node = $3;
 			parent -> type = List + tmp_node -> type;
-			child = make_token_node("List.of");
+			child = make_token_node("List.of", NOT_SPACE);
 			Add_Child(parent, child, NOT_NEED);
-			child = make_token_node("(");
+			child = make_token_node("(", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
-			child = make_token_node(")");
+			child = make_token_node(")", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 		
 			$$ = parent;
@@ -2214,7 +2225,7 @@ decl_content:	SETOF OPEN list_content CLOSE
 		{
 			parent = make_nt_node();
 			parent -> type = String;
-			child = make_token_node($1);
+			child = make_token_node($1, NOT_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 
 			$$ = parent;
@@ -2233,9 +2244,9 @@ list_content:	STR COMMA list_content
 	    	{
 			parent = make_nt_node();
 			parent -> type = String;
-			child = make_token_node($1);
+			child = make_token_node($1, NOT_SPACE);
 			Add_Child(parent, child, NOT_NEED);
-			child = make_token_node(",");
+			child = make_token_node(",", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 	
@@ -2245,7 +2256,7 @@ list_content:	STR COMMA list_content
 		{
 			parent = make_nt_node();
 			parent -> type = String;
-			child = make_token_node($1);
+			child = make_token_node($1, NOT_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 	
 			$$ = parent;
@@ -2260,7 +2271,7 @@ list_content:	STR COMMA list_content
 				tmp_node = $1;
 			parent -> type = Double;
 			Add_Child(parent, $1, NOT_NEED);
-			child = make_token_node(",");
+			child = make_token_node(",", NEED_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
 
@@ -2309,11 +2320,12 @@ fun_call:	ID OPEN argument CLOSE
 					parent -> type = fun_type[tmp_idx];
 				}
 			}
+			child -> space = NOT_SPACE;
 			Add_Child(parent, child, NOT_NEED);
-			child = make_token_node("(");
+			child = make_token_node("(", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
-			child = make_token_node(")");
+			child = make_token_node(")", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 
 			$$ = parent;
@@ -2341,7 +2353,7 @@ argument:	cal_sent mul_argument
 				parent -> type = String;
 			else
 				parent -> type = tmp_node -> type;
-			child = make_token_node($1);
+			child = make_token_node($1, NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
 	
@@ -2352,12 +2364,12 @@ argument:	cal_sent mul_argument
 			parent = make_nt_node();
 			tmp_node = $3;
 			parent -> type = tmp_node -> type + List;
-			child = make_token_node("List.of");
+			child = make_token_node("List.of", NOT_SPACE);
 			Add_Child(parent, child, NOT_NEED);
-			child = make_token_node("(");
+			child = make_token_node("(", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
-			child = make_token_node(")");
+			child = make_token_node(")", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($5, NOT_NEED);
 	
@@ -2368,12 +2380,12 @@ argument:	cal_sent mul_argument
 			parent = make_nt_node();
 			tmp_node = $3;
 			parent -> type = tmp_node -> type + List;
-			child = make_token_node("Set.of");
+			child = make_token_node("Set.of", NOT_SPACE);
 			Add_Child(parent, child, NOT_NEED);
-			child = make_token_node("(");
+			child = make_token_node("(", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($3, NOT_NEED);
-			child = make_token_node(")");
+			child = make_token_node(")", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($5, NOT_NEED);
 	
@@ -2407,7 +2419,7 @@ mul_argument:	COMMA argument
 			parent = make_nt_node();
 			tmp_node = $2;
 			parent -> type = tmp_node -> type;
-			child = make_token_node(",");
+			child = make_token_node(",", NEED_SPACE);
 			Add_Child(parent, child, NOT_NEED);
 			Add_Last($2, NOT_NEED);
 		
@@ -2425,7 +2437,7 @@ mul_argument:	COMMA argument
 
 epsilone: /*empty*/	
 	{
-		parent = make_token_node("");
+		parent = make_token_node("", NOT_SPACE);
 		parent -> type = Not_defined;
 		$$ = parent;
 	}
@@ -2531,25 +2543,25 @@ char * ttos(int type)
 		strcpy(tmp, "List<Bool>");
 		return tmp;
 	case Question + Int:
-		strcpy(tmp, "int");
+		strcpy(tmp, "Integer");
 		return tmp;
 	case Question + Long:
-		strcpy(tmp, "long");
+		strcpy(tmp, "Long");
 		return tmp;
 	case Question + Float:
-		strcpy(tmp, "float");
+		strcpy(tmp, "Float");
 		return tmp;
 	case Question + Double:
-		strcpy(tmp, "double");
+		strcpy(tmp, "Double");
 		return tmp;
 	case Question + String:
 		strcpy(tmp, "String");
 		return tmp;
 	case Question + Char:
-		strcpy(tmp, "char");
+		strcpy(tmp, "Char");
 		return tmp;
 	case Question + Bool:
-		strcpy(tmp, "bool");
+		strcpy(tmp, "Bool");
 		return tmp;
 	case Question + Any:
 		strcpy(tmp, "Object");

@@ -5,6 +5,8 @@
 #define NEED -1
 #define NOT_NEED -2
 #define NEED_NOW -3
+#define NEED_SPACE -10
+#define NOT_SPACE -20
 
 FILE * yyout;
 
@@ -13,6 +15,7 @@ typedef struct parse_node
 	char * name;
 	int type;
 	int token_type;
+	int space;
 	char * classtype;
 	double data;
 	struct parse_node *child;
@@ -25,14 +28,14 @@ NODE * root;
 NODE * curr;
 
 static int Find_Class_Type_Name(char * class_type, char ** class_type_name);
-static void Print_Enter(char * token, int * blank);
+static void Print_Enter(char * token);
 
 NODE * make_id_node(char * id_name, int id_type, double id_data);
 NODE * make_fun_node(char * fun_name, int fun_type);
 NODE * make_class_node(char * class_name, char * classtype);
 NODE * make_class_type_node(char * classtype);
 NODE * make_nt_node();
-NODE * make_token_node(char * token_token_name);
+NODE * make_token_node(char * token_token_name, int needspace);
 
 void Add_Last(NODE * tmp, int needsemicolumn);
 void Add_Child(NODE * parent, NODE * child, int needsemicolumn);
@@ -120,7 +123,7 @@ NODE * make_nt_node()
 	return tmp;
 }
 
-NODE * make_token_node(char * token_token_name)
+NODE * make_token_node(char * token_token_name, int needspace)
 {
 	NODE * tmp = (NODE*)malloc(sizeof(NODE));
 	if(token_token_name != NULL)
@@ -130,7 +133,7 @@ NODE * make_token_node(char * token_token_name)
 	}
 	else
 		tmp -> name = NULL;
-	tmp -> token_type = 0;
+	tmp -> space = needspace;
 	tmp -> parent = NULL;
 	tmp -> child = NULL;
 	tmp -> next = NULL;
@@ -148,24 +151,6 @@ int Find_Class_Type_Name(char * class_type, char ** class_type_name)
 	}
 	
 	return -1;
-}
-
-void Print_Enter(char * token, int * blank)
-{
-	if(strcmp(token, "}") == 0)
-	{
-		fprintf(yyout, "\n");
-		(*blank)--;
-	}
-	else if(strcmp(token, "{") == 0)
-	{
-		fprintf(yyout, "\n");
-		(*blank)++;
-	}
-	else if(token[0] == '/' && token[1] == '/')
-	{
-		fprintf(yyout, "\n");
-	}
 }
 
 void Add_Last(NODE * tmp, int needsemicolumn)
@@ -198,13 +183,24 @@ void Print_Tree(NODE * parent, int blank)
 		if(tmp -> name != NULL)
 		{
 			fprintf(yyout, "%s ", tmp -> name);
+			if(tmp -> space == NOT_SPACE)
+			{
+				fseek(yyout, -1, SEEK_CUR);
+			}
 			if(tmp -> token_type == NEED_NOW)
+			{
 				fprintf(yyout, ";\n");
-			Print_Enter(tmp -> name, &blank);
+			}
+			if(tmp -> name[0] == '/' && tmp -> name[1] == '/')
+			{
+				fprintf(yyout, "\n");
+			}
 		}
 		Print_Tree(tmp, blank);
 		if(tmp -> token_type == NEED)
+		{
 			fprintf(yyout, ";\n");
+		}
 		tmp = tmp -> next;
 	}
 
