@@ -214,14 +214,16 @@ void Print_Tree(NODE * parent, int blank)
 	{
 		if(tmp -> name != NULL)
 		{
-			fprintf(yyout, "%s ", tmp -> name);
 			if(tmp -> type == decl_with_no_type)
 			{
 				int tmp_idx = Find_var_index(tmp -> name, id_name);
 		 		printf("%s ", ttos(id_type[tmp_idx])); 
 			}
 			if(tmp -> token_type == 1000)
+			{
 				printf("%s ", tmp -> name);
+				fprintf(yyout, "%s ", tmp -> name);
+			}
 			if(tmp -> space == NOT_SPACE)
 			{
 				fseek(yyout, -1, SEEK_CUR);
