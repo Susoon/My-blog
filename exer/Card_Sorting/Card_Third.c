@@ -9,6 +9,7 @@ typedef struct node
 }Node;
 
 Node * head;
+Node * hash_head;
 
 void Add_First(int n)
 {
@@ -21,23 +22,59 @@ void Add_First(int n)
 	head = tmp;
 }
 
+void Hash_Add(int n)
+{
+	Node* tmp = (Node*)malloc(sizeof(Node));
+	tmp -> num = n;
+	tmp -> next = hash_head;
+	tmp -> prev = head;
+	hash_head -> next = tmp;
+	hash_head = tmp;
+}	
+
 void Remove_Cur_Node()
 {
-	Node * tmp = head;
 	head -> prev -> next = head -> next;
 	head -> next -> prev = head -> prev;
 	head = head -> next;
 }
 
+void Remove_Hash_Node()
+{
+	Node * tmp = hash_head -> next;
+	hash_head -> next = tmp -> next;
+	hash_head = tmp -> next;
+}
+
+int Hash_Traverse(int move)
+{
+	while(move > hash_head -> num)
+	{
+		move -= hash_head -> num;
+		hash_head = hash_head -> next;
+		while(hash_head -> num == 0) { Remove_Hash_Node();}
+	}
+	
+	return move;
+}
+
 int Find_Loca(int move)
 {
 	int ret = 0;
+	
+	if(move + hash_head -> num > hash_head -> num)
+	{
+		move = Hash_Traverse(move);
+		head = hash_head -> prev;
+	}
 
 	for(int i = 0; i < move; i++)
 	{
 		head = head -> next;
 	}
 	ret = head -> num;
+	hash_head -> num -= 1;
+
 	Remove_Cur_Node();
 
 	return ret;
@@ -56,7 +93,7 @@ void sorting(int * arr, int n)
 
 int main(void)
 {
-	int n;
+	int n, count = 1001;
 	int * arr;
 
 	scanf("%d",&n);
@@ -71,11 +108,34 @@ int main(void)
 	{
 		Add_First(i);
 	}
-	
-	sorting(arr, n);
+	hash_head = (Node*)malloc(sizeof(Node));
+	hash_head -> next = hash_head;
+	hash_head -> prev = head;
 
-	for(int i = 1; i<=n;i++){printf("%d ",i);}
-	printf("\n");
+	if(n > 1000)
+		hash_head -> num = 1000;
+	else
+		hash_head -> num = n;
+
+	for(int i = 1; i <= n; i++)
+	{	
+		if(i % 1000 == 0)
+		{	
+			if(n - i < 1000)
+			{
+				Hash_Add(n - i);
+			}
+			else
+			{
+				Hash_Add(1000);
+			}
+		}
+			head = head -> next;
+	}
+	
+	hash_head = hash_head -> next;
+	sorting(arr, n);
+	
 	for(int i = 1; i <= n; i++)
 	{
 		printf("%d ",arr[i]);
