@@ -185,10 +185,8 @@ goal:	start
 		root -> parent = NULL;
 		root -> token_type = NOT_NEED;
 		root -> type = Not_defined;
-		child = make_token_node("package test;\n\n", NOT_SPACE);
-		Add_Child(root, child, NOT_NEED);
 		child = make_token_node("import java.util.*;\n", NOT_SPACE);
-		Add_Last(child, NOT_NEED);
+		Add_Child(root, child, NOT_NEED);
 		Add_Last($1, NOT_NEED);
 		Print_Tree(root, 0);
 	}
@@ -391,6 +389,10 @@ expr:	for_stt
 		parent -> type = tmp_node -> type;
 		child = make_id_node($1, tmp_node -> type, tmp_node -> data);
 		Add_Child(parent, child, NOT_NEED);
+		child = make_token_node(".", NOT_SPACE);
+		Add_Last(child, NOT_NEED);
+		child = make_token_node("stream()", NOT_SPACE);
+		Add_Last(child, NOT_NEED);
 		Add_Last($2, NEED);
 
 		$$ = parent;
@@ -453,7 +455,7 @@ class_stt:	ABST CLASS ID OPEN class_param CLOSE c_inheritance M_OPEN class_decl 
 			child = make_token_node("{\n", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($9, NOT_NEED);
-			child = make_token_node("}\n", NOT_SPACE);
+			child = make_token_node("}", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 	
 			$$ = parent;
@@ -481,7 +483,7 @@ class_stt:	ABST CLASS ID OPEN class_param CLOSE c_inheritance M_OPEN class_decl 
 			child = make_token_node("{\n", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 			Add_Last($8, NOT_NEED);
-			child = make_token_node("}\n", NOT_SPACE);
+			child = make_token_node("}", NOT_SPACE);
 			Add_Last(child, NOT_NEED);
 	
 			$$ = parent;
@@ -503,7 +505,7 @@ class_stt:	ABST CLASS ID OPEN class_param CLOSE c_inheritance M_OPEN class_decl 
 			child = make_token_node("{\n", NOT_NEED);
 			Add_Last(child, NOT_NEED);
 			Add_Last($4, NOT_NEED);
-			child = make_token_node("}\n", NOT_NEED);
+			child = make_token_node("}", NOT_NEED);
 			Add_Last(child, NOT_NEED);
 	
 			$$ = parent;
@@ -642,7 +644,7 @@ class_method_decl:	class_keyword fun_stt
 				tmp_node = $2;
 				parent -> type = tmp_node -> type;
 				Add_Child(parent, $1, NOT_NEED);
-				Add_Last($2, NEED);				
+				Add_Last($2, NOT_NEED);				
 
 				$$ = parent;
 			}
@@ -736,10 +738,12 @@ lambda: DOT ID M_OPEN cal_sent M_CLOSE lambda
 		tmp_idx = Fun_Save($2, Unit, fun_name, fun_type);
 		child = make_fun_node(fun_name[tmp_idx], fun_type[tmp_idx]);
 		Add_Last(child, NOT_NEED);
-		child = make_token_node("\n{", NOT_SPACE);
+		child = make_token_node("(", NOT_SPACE);
+		Add_Last(child, NOT_NEED);
+		child = make_token_node("it -> ", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($4, NOT_NEED);
-		child = make_token_node("}\n", NOT_SPACE);
+		child = make_token_node(")\n", NOT_SPACE);
 		Add_Last(child, NOT_NEED);
 		Add_Last($6, NOT_NEED);
 
