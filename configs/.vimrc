@@ -16,7 +16,7 @@ Plugin 'tpope/vim-fugitive'
 " Git plugin not hosted on GitHub
 Plugin 'git://git.wincent.com/command-t.git'
 " git repos on your local machine (i.e. when working on your own plugin),
-"Plugin 'file:///home/jjeaby/Dev/tools/vim-plugin'
+Plugin 'file:///home/jjeaby/Dev/tools/vim-plugin'
 " The sparkup vim script is in a subdirectory of this repo called vim.
 " Pass the path to set the runtimepath properly.
 Plugin 'rstacruz/sparkup', {'rtp': 'vim/'}
@@ -37,22 +37,22 @@ let g:ctrlp_custom_ignore = {
   \ 'dir':  '\.git$\|vendor$',
     \ 'file': '\v\.(exe|so|dll)$'
     \ }
-color jellybeans
-filetype on                                 "vim filetype on
-nmap <F8> :SrcExplToggle<CR>                "F8 Key = SrcExpl Toggling
-nmap <C-H> <C-W>h                           "왼쪽 창으로 이동
-nmap <C-J> <C-W>j                           "아래 창으로 이동
-nmap <C-K> <C-W>k                           "윗 창으로 이동
-nmap <C-L> <C-W>l                           "오른쪽 창으로 이동
-set nu
-set title
-set showmatch
-set ruler
-" 구문 강조 사용
-if has("syntax")
+ color jellybeans
+ filetype on                                 "vim filetype on
+ nmap <F2> :NERDTreeToggle<CR>
+ nmap <C-H> <C-W>h                           "왼쪽 창으로 이동
+ nmap <C-J> <C-W>j                           "아래 창으로 이동
+ nmap <C-K> <C-W>k                           "윗 창으로 이동
+ nmap <C-L> <C-W>l                           "오른쪽 창으로 이동
+ set nu
+ set title
+ set showmatch
+ set ruler
+ if has("syntax")
 	 syntax on
  endif
  set t_Co=256
+ set wrap
  set autoindent
  set smartindent
  set tabstop=4
